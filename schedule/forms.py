@@ -32,7 +32,7 @@ class EventForm(SpanForm):
 class OccurrenceForm(SpanForm):
     class Meta(object):
         model = Occurrence
-        exclude = ('original_start', 'original_end', 'event', 'cancelled')
+        exclude = ('original_start', 'original_end', 'event', )
 
 
 class EventAdminForm(forms.ModelForm):

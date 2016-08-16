@@ -33,7 +33,7 @@ class CalendarRelationAdmin(admin.ModelAdmin):
 
 class EventAdmin(admin.ModelAdmin):
     list_display = ('title', 'start', 'end')
-    list_filter = ('start',)
+    list_filter = ('calendar', 'start', 'end_recurring_period')
     ordering = ('-start',)
     date_hierarchy = 'start'
     search_fields = ('title', 'description')

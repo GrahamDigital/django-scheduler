@@ -3,7 +3,8 @@ from annoying.functions import get_config
 # whether to display cancelled occurrences
 # (if they are displayed then they have a css class "cancelled")
 # this controls behaviour of Period.classify_occurrence method
-SHOW_CANCELLED_OCCURRENCES = get_config('SHOW_CANCELLED_OCCURRENCES', False)
+# SHOW_CANCELLED_OCCURRENCES = get_config('SHOW_CANCELLED_OCCURRENCES', False)
+SHOW_CANCELLED_OCCURRENCES = False
 
 # Callable used to check if a user has edit permissions to event
 # (and occurrence). Used by check_edit_permission decorator
