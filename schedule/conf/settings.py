@@ -3,8 +3,7 @@ from annoying.functions import get_config
 # whether to display cancelled occurrences
 # (if they are displayed then they have a css class "cancelled")
 # this controls behaviour of Period.classify_occurrence method
-# SHOW_CANCELLED_OCCURRENCES = get_config('SHOW_CANCELLED_OCCURRENCES', False)
-SHOW_CANCELLED_OCCURRENCES = False
+SHOW_CANCELLED_OCCURRENCES = get_config('SHOW_CANCELLED_OCCURRENCES', False)
 
 # Callable used to check if a user has edit permissions to event
 # (and occurrence). Used by check_edit_permission decorator
@@ -16,8 +15,12 @@ if not CHECK_EVENT_PERM_FUNC:
 
 if not CHECK_EVENT_PERM_FUNC:
     def check_event_permission(ob, user):
-        return user.is_authenticated()
-
+        if user.is_superuser:
+            return True
+        elif ob is None or ob.calendar.station in user.stations.all() :
+            return user.has_perm('schedule.change_event')
+        else:
+            return False
     CHECK_EVENT_PERM_FUNC = check_event_permission
 
 # Callable used to check if a user has edit permissions to occurrence
@@ -25,7 +28,12 @@ CHECK_OCCURRENCE_PERM_FUNC = get_config('CHECK_OCCURRENCE_PERM_FUNC', None)
 
 if not CHECK_OCCURRENCE_PERM_FUNC:
     def check_occurrence_permission(ob, user):
-        return CHECK_EVENT_PERM_FUNC(ob.event, user)
+        if user.is_superuser:
+            return True
+        elif ob is None or ob.event.calendar.station in user.stations.all() :
+            return user.has_perm('schedule.change_occurrence')
+        else:
+            return False
     CHECK_OCCURRENCE_PERM_FUNC = check_occurrence_permission
 
 CALENDAR_VIEW_PERM = get_config('CALENDAR_VIEW_PERM', False)
@@ -35,8 +43,12 @@ CHECK_CALENDAR_PERM_FUNC = get_config('CHECK_CALENDAR_PERM_FUNC', None)
 
 if not CHECK_CALENDAR_PERM_FUNC:
     def check_calendar_permission(ob, user):
-        return user.is_authenticated()
-
+        if user.is_superuser:
+            return True
+        elif ob is None or ob.station in user.stations.all() :
+            return user.has_perm('schedule.change_calendar')
+        else:
+            return False
     CHECK_CALENDAR_PERM_FUNC = check_calendar_permission
 
 CALENDAR_VIEW_PERM = get_config('CALENDAR_VIEW_PERM', False)

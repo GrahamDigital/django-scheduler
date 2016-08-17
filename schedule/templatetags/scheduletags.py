@@ -55,9 +55,9 @@ def daily_table(context, day, start=0, end=24, increment=30):
       increment - size of a time slot (in minutes)
     """
     user = context['request'].user
-    addable = CHECK_EVENT_PERM_FUNC(None, user)
+    addable = False
     if 'calendar' in context:
-        addable &= CHECK_CALENDAR_PERM_FUNC(context['calendar'], user)
+        addable = CHECK_CALENDAR_PERM_FUNC(context['calendar'], user)
     context['addable'] = addable
 
     day_part = day.get_time_slot(day.start + datetime.timedelta(hours=start), day.start + datetime.timedelta(hours=end))
