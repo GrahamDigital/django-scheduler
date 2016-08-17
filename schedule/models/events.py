@@ -11,10 +11,12 @@ from django.db.models.base import ModelBase
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.template.defaultfilters import date
+from django.template.defaultfilters import date, time
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
+
+from stations.models import Stations
 
 from schedule.models.rules import Rule
 from schedule.models.calendars import Calendar
@@ -78,8 +80,9 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
     calendar = models.ForeignKey(
         Calendar,
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
+        # null=True,
+        # blank=True,
+        # default=1,
         verbose_name=_("calendar"))
     color_event = models.CharField(_("Color event"), null=True, blank=True, max_length=10)
     objects = EventManager()
@@ -90,10 +93,11 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
         app_label = 'schedule'
 
     def __str__(self):
-        return ugettext('%(title)s: %(start)s - %(end)s') % {
+        return ugettext('%(title)s: %(start)s %(stime)s-%(etime)s') % {
             'title': self.title,
             'start': date(self.start, django_settings.DATE_FORMAT),
-            'end': date(self.end, django_settings.DATE_FORMAT),
+            'stime': time(self.start, django_settings.TIME_FORMAT),
+            'etime': time(self.end, django_settings.TIME_FORMAT),
         }
 
     @property

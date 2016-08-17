@@ -5,13 +5,13 @@ from schedule.forms import EventAdminForm
 
 
 class CalendarAdminOptions(admin.ModelAdmin):
-    list_display = ('name', 'slug')
+    list_display = ('name', 'slug', 'station')
     prepopulated_fields = {"slug": ("name",)}
-    search_fields = ['name']
+    search_fields = ['name', 'station__name']
     fieldsets = (
         (None, {
             'fields': [
-                ('name', 'slug'),
+                ('name', 'slug','station'),
             ]
         }),
     )
@@ -32,8 +32,8 @@ class CalendarRelationAdmin(admin.ModelAdmin):
 
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('title', 'start', 'end')
-    list_filter = ('calendar', 'start', 'end_recurring_period')
+    list_display = ('title', 'start', 'end', 'calendar', 'rule', 'end_recurring_period')
+    list_filter = ('calendar__station','calendar', 'start', 'end_recurring_period')
     ordering = ('-start',)
     date_hierarchy = 'start'
     search_fields = ('title', 'description')
@@ -49,6 +49,19 @@ class EventAdmin(admin.ModelAdmin):
         }),
     )
     form = EventAdminForm
+
+     # Override queries to be restricted to user station affiliations
+    def get_queryset(self, request):
+        qs = super(EventAdmin, self).get_queryset(request)
+        if not request.user.is_superuser:
+            qs = qs.filter(calendar__station__in=request.user.stations.all())
+        return qs
+    # Override options for station on Program add form
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "calendar" and not request.user.is_superuser:
+            kwargs["queryset"] = Calendar.objects.filter(station__in=request.user.stations.all())
+            return db_field.formfield(**kwargs)
+        return super(EventAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class RuleAdmin(admin.ModelAdmin):
