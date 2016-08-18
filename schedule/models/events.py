@@ -616,9 +616,11 @@ class Occurrence(with_metaclass(ModelBase, *get_model_bases())):
         })
 
     def __str__(self):
-        return ugettext("%(start)s to %(end)s") % {
+        return ugettext('%(title)s: %(start)s %(stime)s-%(etime)s') % {
+            'title': self.title,
             'start': date(self.start, django_settings.DATE_FORMAT),
-            'end': date(self.end, django_settings.DATE_FORMAT)
+            'stime': time(self.start, django_settings.TIME_FORMAT),
+            'etime': time(self.end, django_settings.TIME_FORMAT),
         }
 
     def __lt__(self, other):

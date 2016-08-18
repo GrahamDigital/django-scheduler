@@ -1,4 +1,8 @@
 from annoying.functions import get_config
+# import pytz
+# TIME_ZONE=pytz.utc # Always use UTC times
+
+TIME_ZONE = None # Use naive datetimes
 
 # whether to display cancelled occurrences
 # (if they are displayed then they have a css class "cancelled")
@@ -9,9 +13,6 @@ SHOW_CANCELLED_OCCURRENCES = get_config('SHOW_CANCELLED_OCCURRENCES', False)
 # (and occurrence). Used by check_edit_permission decorator
 # if ob==None we check permission to add occurrence
 CHECK_EVENT_PERM_FUNC = get_config('CHECK_EVENT_PERM_FUNC', None)
-
-if not CHECK_EVENT_PERM_FUNC:
-    CHECK_EVENT_PERM_FUNC = get_config('CHECK_PERMISSION_FUNC', None)
 
 if not CHECK_EVENT_PERM_FUNC:
     def check_event_permission(ob, user):
@@ -25,7 +26,6 @@ if not CHECK_EVENT_PERM_FUNC:
 
 # Callable used to check if a user has edit permissions to occurrence
 CHECK_OCCURRENCE_PERM_FUNC = get_config('CHECK_OCCURRENCE_PERM_FUNC', None)
-
 if not CHECK_OCCURRENCE_PERM_FUNC:
     def check_occurrence_permission(ob, user):
         if user.is_superuser:
@@ -36,22 +36,20 @@ if not CHECK_OCCURRENCE_PERM_FUNC:
             return False
     CHECK_OCCURRENCE_PERM_FUNC = check_occurrence_permission
 
-CALENDAR_VIEW_PERM = get_config('CALENDAR_VIEW_PERM', False)
-
 # Callable used to check if a user has edit permissions to calendar
 CHECK_CALENDAR_PERM_FUNC = get_config('CHECK_CALENDAR_PERM_FUNC', None)
-
 if not CHECK_CALENDAR_PERM_FUNC:
     def check_calendar_permission(ob, user):
         if user.is_superuser:
             return True
         elif ob is None or ob.station in user.stations.all() :
-            return user.has_perm('schedule.change_calendar')
+            return user.has_perm('schedule.change_event')
         else:
             return False
     CHECK_CALENDAR_PERM_FUNC = check_calendar_permission
 
-CALENDAR_VIEW_PERM = get_config('CALENDAR_VIEW_PERM', False)
+
+CALENDAR_VIEW_PERM = get_config('CALENDAR_VIEW_PERM', True)
 
 # Callable used to customize the event list given for a calendar and user
 # (e.g. all events on that calendar, those events plus another calendar's events,
