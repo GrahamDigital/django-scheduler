@@ -1,8 +1,7 @@
 from annoying.functions import get_config
-# import pytz
-# TIME_ZONE=pytz.utc # Always use UTC times
 
-TIME_ZONE = None # Use naive datetimes
+import pytz
+TIME_ZONE=pytz.utc # Always use UTC times
 
 # whether to display cancelled occurrences
 # (if they are displayed then they have a css class "cancelled")

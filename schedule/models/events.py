@@ -207,18 +207,18 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
                 tzinfo = start.tzinfo
 
             occurrences = []
-            if self.end_recurring_period and self.end_recurring_period < end:
+            if self.end_recurring_period and self.end_recurring_period < end.replace(tzinfo=self.end_recurring_period.tzinfo):
                 end = self.end_recurring_period
 
             rule = self.get_rrule_object(tzinfo)
-            start = (start - difference).replace(tzinfo=None)
-            end = (end - difference)
+            start = start.replace(tzinfo=None)
             if timezone.is_aware(end):
                 end = tzinfo.normalize(end).replace(tzinfo=None)
             o_starts = []
-            o_starts.append(rule.between(start, end, inc=True))
-            o_starts.append(rule.between(start - (difference // 2), end - (difference // 2), inc=True))
-            o_starts.append(rule.between(start - difference, end - difference, inc=True))
+            o_starts.append(rule.between(start, end)) # occurrences which start within (start,end)
+            o_starts.append(rule.between(start - difference, end - difference)) # occurrences which end within (start,end)
+            if ((end-start) <= difference) : #and (start>=self.start) : # if (start,end) interval is smaller than event interval
+                o_starts.append(rule.between(start-difference, end))
             for occ in o_starts:
                 for o_start in occ:
                     o_start = tzinfo.localize(o_start)

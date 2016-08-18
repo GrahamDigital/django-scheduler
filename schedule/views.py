@@ -99,8 +99,8 @@ class CalendarByPeriodsView(CalendarMixin, DetailView):
             date = timezone.now()
         event_list = GET_EVENTS_FUNC(self.request, calendar)
 
-        local_timezone = timezone.get_current_timezone()
-        period = period_class(event_list, date, tzinfo=local_timezone)
+        # local_timezone = timezone.get_current_timezone()
+        period = period_class(event_list, date)#, tzinfo=local_timezone)
 
         context.update({
             'date': date,
@@ -306,7 +306,7 @@ def api_occurrences(request):
 
 
 def _api_occurrences(start, end, calendar_slug):
-    
+
     if not start or not end:
         raise ValueError('Start and end parameters are required')
     # version 2 of full calendar
@@ -327,7 +327,7 @@ def _api_occurrences(start, end, calendar_slug):
         utc = pytz.UTC
         start = utc.localize(start)
         end = utc.localize(end)
-    
+
     if calendar_slug:
         # will raise DoesNotExist exception if no match
         calendars = [Calendar.objects.get(slug=calendar_slug)]
