@@ -48,7 +48,12 @@ if not CHECK_CALENDAR_PERM_FUNC:
     CHECK_CALENDAR_PERM_FUNC = check_calendar_permission
 
 
-CALENDAR_VIEW_PERM = get_config('CALENDAR_VIEW_PERM', True)
+CALENDAR_VIEW_PERM = get_config('CALENDAR_VIEW_PERM', None)
+if not CALENDAR_VIEW_PERM:
+    def calendar_view_permission(ob, user):
+        return user.is_authenticated()
+    CALENDAR_VIEW_PERM = calendar_view_permission
+
 
 # Callable used to customize the event list given for a calendar and user
 # (e.g. all events on that calendar, those events plus another calendar's events,
