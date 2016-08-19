@@ -143,7 +143,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
             if occ_replacer.has_occurrence(occ):
                 p_occ = occ_replacer.get_occurrence(occ)
                 # ...but only if they are within this period
-                if p_occ.start < end and p_occ.end >= start:
+                if p_occ.start < end and p_occ.end > start:
                     final_occurrences.append(p_occ)
             else:
                 final_occurrences.append(occ)

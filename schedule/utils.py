@@ -92,7 +92,7 @@ class OccurrenceReplacer(object):
         """
         Return persisted occurrences which are now in the period
         """
-        return [occ for _, occ in list(self.lookup.items()) if (occ.start < end and occ.end >= start and not occ.cancelled)]
+        return [occ for _, occ in list(self.lookup.items()) if (occ.start < end and occ.end > start and not occ.cancelled)]
 
 
 def get_occurrence(request, *args, **kwargs):
