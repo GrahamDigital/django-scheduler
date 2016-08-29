@@ -52,6 +52,11 @@ class EventAdminForm(forms.ModelForm):
 
 # """ Validation Functions """
 def time_conflicts(start1,end1,start2,end2):
+    """
+    Given two occurrences with start/end datetimes (start1,end1) & (start2,end2),
+    checks to see if there is any overlap in their runtimes.
+    Returns False if there is no conflict.
+    """
     if start2 <= start1 < end2: # if start in range (allow start1 = end2)
         return True
     if start2 < end1 <= end2: # if end in range (allow end1 = start2)
@@ -62,6 +67,10 @@ def time_conflicts(start1,end1,start2,end2):
 
 
 def check_occ_conflicts(occ, events):
+    """
+    Checks to see if an occurrence (occ) conflicts with any occurrence of an
+    event queryset (events).
+    """
     period =Period(events, occ.start, occ.end)
     for pocc in period.occurrences:
         if not pocc.cancelled:
@@ -81,6 +90,8 @@ def check_event_conflicts(self):
     rule = self.cleaned_data.get('rule')
     end_recurring_period = self.cleaned_data.get('end_recurring_period')
     primKey = self.instance.pk #Instance primary key
+
+    print "CHECK EVENT CONFLICTS CALLED!"
 
     if 'end' in self.cleaned_data and 'start' in self.cleaned_data:
         if self.cleaned_data['end'] <= self.cleaned_data['start']:
