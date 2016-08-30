@@ -179,6 +179,13 @@ class EditEventView(EventEditMixin, UpdateView):
     form_class = EventForm
     template_name = 'schedule/create_event.html'
 
+    def get_initial(self):
+        initial_data = {
+            "calendar": Calendar.objects.get(slug=self.kwargs['calendar_slug']),
+            "event_id": self.kwargs['event_id']
+            }
+        return initial_data
+
     def form_valid(self, form):
         event = form.save(commit=False)
         old_event = Event.objects.get(pk=event.pk)
@@ -207,8 +214,9 @@ class CreateEventView(EventEditMixin, CreateView):
             try:
                 start = datetime.datetime(**date)
                 initial_data = {
+                    "calendar": Calendar.objects.get(slug=self.kwargs['calendar_slug']),
                     "start": start,
-                    "end": start + datetime.timedelta(minutes=30)
+                    "end": start + datetime.timedelta(minutes=30),
                 }
             except TypeError:
                 raise Http404
@@ -219,7 +227,7 @@ class CreateEventView(EventEditMixin, CreateView):
     def form_valid(self, form):
         event = form.save(commit=False)
         event.creator = self.request.user
-        event.calendar = get_object_or_404(Calendar, slug=self.kwargs['calendar_slug'])
+        # event.calendar = get_object_or_404(Calendar, slug=self.kwargs['calendar_slug'])
         event.save()
         return HttpResponseRedirect(event.get_absolute_url())
 

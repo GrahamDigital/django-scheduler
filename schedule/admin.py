@@ -56,7 +56,7 @@ class EventAdmin(admin.ModelAdmin):
         if not request.user.is_superuser:
             qs = qs.filter(calendar__station__in=request.user.stations.all())
         return qs
-    # Override options for station on Program add form
+    # Override options for Calendar on Event add form
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "calendar" and not request.user.is_superuser:
             kwargs["queryset"] = Calendar.objects.filter(station__in=request.user.stations.all())

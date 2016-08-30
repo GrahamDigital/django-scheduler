@@ -1,6 +1,6 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from schedule.models import Event, Occurrence
+from schedule.models import Event, Occurrence, Calendar, Rule
 from schedule.periods import Period
 from schedule.widgets import SpectrumColorPicker
 import datetime
@@ -16,19 +16,6 @@ class SpanForm(forms.ModelForm):
             if self.cleaned_data['end'] <= self.cleaned_data['start']:
                 raise forms.ValidationError(_(u"The end time must be later than start time!"))
         return self.cleaned_data
-
-
-class EventForm(SpanForm):
-    def __init__(self, *args, **kwargs):
-        super(EventForm, self).__init__(*args, **kwargs)
-
-    end_recurring_period = forms.DateTimeField(label=_(u"End recurring period"),
-                                               help_text=_(u"This date is ignored for one time only events."),
-                                               required=False)
-
-    class Meta(object):
-        model = Event
-        exclude = ('creator', 'created_on', 'calendar')
 
 
 class OccurrenceForm(SpanForm):
@@ -49,6 +36,27 @@ class EventAdminForm(forms.ModelForm):
         widgets = {
             'color_event': SpectrumColorPicker,
         }
+
+class EventForm(SpanForm):
+    def __init__(self, *args, **kwargs):
+        super(EventForm, self).__init__(*args, **kwargs)
+        calendar = kwargs['initial']['calendar']
+        self.fields['calendar'].queryset = Calendar.objects.filter(slug=calendar.slug) # restrict calendar choice to only the calendar passed through the url
+        if 'event_id' in kwargs['initial']:
+            event = Event.objects.get(pk=kwargs['initial']['event_id'])
+            self.fields['rule'].queryset = Rule.objects.filter(name=event.rule.name) # don't allow rule changes for saved events (breaks the generation of persisted occurrences)
+
+    end_recurring_period = forms.DateTimeField(label=_(u"End recurring period"),
+                                               help_text=_(u"This date is ignored for one time only events."),
+                                               required=False)
+    def clean(self):
+        super(EventForm, self).clean() # clean the form data
+        check_event_conflicts(self)
+        return self.cleaned_data
+
+    class Meta(object):
+        model = Event
+        exclude = ('created_on', 'creator')
 
 # """ Validation Functions """
 def time_conflicts(start1,end1,start2,end2):
@@ -76,25 +84,23 @@ def check_occ_conflicts(occ, events):
         if not pocc.cancelled:
             if time_conflicts(occ.start, occ.end, pocc.start, pocc.end):
                 raise forms.ValidationError(
-            """ Conflicts with an Occurrence of Event %(title)s (pk = %(pk)s)!
+            """ Conflicts with an Occurrence of Event '%(title)s' (id = %(pk)s)!
             Conflicting occurrence runs %(starttime)s -- %(endtime)s. """%{
-            'title': occ.title,
-            'pk': occ.event.pk,
-            'starttime': occ.start.strftime('%a %Y-%m-%d %H:%M'),
-            'endtime': occ.end.strftime('%a %Y-%m-%d %H:%M')})
+            'title': pocc.title,
+            'pk': pocc.event.pk,
+            'starttime': pocc.start.strftime('%a %Y-%m-%d %H:%M'),
+            'endtime': pocc.end.strftime('%a %Y-%m-%d %H:%M')})
 
-def check_event_conflicts(self):
-    calendar = self.cleaned_data.get('calendar')
-    start = self.cleaned_data.get('start')
-    end = self.cleaned_data.get('end')
-    rule = self.cleaned_data.get('rule')
-    end_recurring_period = self.cleaned_data.get('end_recurring_period')
-    primKey = self.instance.pk #Instance primary key
+def check_event_conflicts(form):
+    calendar = form.cleaned_data.get('calendar')
+    start = form.cleaned_data.get('start')
+    end = form.cleaned_data.get('end')
+    rule = form.cleaned_data.get('rule')
+    end_recurring_period = form.cleaned_data.get('end_recurring_period')
+    primKey = form.instance.pk #Instance primary key
 
-    print "CHECK EVENT CONFLICTS CALLED!"
-
-    if 'end' in self.cleaned_data and 'start' in self.cleaned_data:
-        if self.cleaned_data['end'] <= self.cleaned_data['start']:
+    if 'end' in form.cleaned_data and 'start' in form.cleaned_data:
+        if form.cleaned_data['end'] <= form.cleaned_data['start']:
             raise forms.ValidationError(_(u"The end time must be later than start time!"))
 
     if rule and not end_recurring_period:
@@ -102,14 +108,13 @@ def check_event_conflicts(self):
 
     events = Event.objects.filter(calendar = calendar)
     if primKey: #exclude self if instance exists
-        events.exclude(pk=primKey)
+        events = events.exclude(pk=primKey)
 
-    event = Event(calendar=calendar, start=start, end=end, rule=rule, end_recurring_period=end_recurring_period, title='placeholder')
-    if not rule : # If not a recurring event, straightforward to find all possible conflicts
+    event = Event(calendar=calendar, start=start, end=end, rule=rule, end_recurring_period=end_recurring_period, title='temp_placeholder')
+    if not rule :
         occ =event.get_occurrence(event.start)
         check_occ_conflicts(occ, events)
     elif rule:
-        event = Event(calendar=calendar, start=start, end=end, rule=rule, end_recurring_period=end_recurring_period, title='placeholder')
         e_occs = event.get_occurrences(start, end_recurring_period)
         for occ in e_occs:
             check_occ_conflicts(occ, events)
