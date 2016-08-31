@@ -6,6 +6,9 @@
   <a class="btn btn-primary gradient" href="{% url "day_calendar" event.calendar.slug %}{% querystring_for_date event.start 3 %}">
     {% trans "Day" %}
   </a>
+  <a class="btn btn-primary gradient" href="{% url "week_calendar" event.calendar.slug %}{% querystring_for_date event.start 3 %}">
+    {% trans "Week" %}
+  </a>
   <a class="btn btn-primary gradient" href="{% url "month_calendar" event.calendar.slug %}{% querystring_for_date event.start 2 %}">
     {% trans "Month" %}
   </a>

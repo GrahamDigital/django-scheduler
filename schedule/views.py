@@ -169,6 +169,7 @@ class EditOccurrenceView(OccurrenceEditMixin, UpdateView):
     template_name = 'schedule/edit_occurrence.html'
 
 
+
 class CreateOccurrenceView(OccurrenceEditMixin, CreateView):
     template_name = 'schedule/edit_occurrence.html'
 

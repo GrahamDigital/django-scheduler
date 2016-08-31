@@ -19,9 +19,19 @@ class SpanForm(forms.ModelForm):
 
 
 class OccurrenceForm(SpanForm):
+    def __init__(self, *args, **kwargs):
+        super(OccurrenceForm, self).__init__(*args, **kwargs)
+        event = kwargs['instance'].event
+        self.fields['event'].queryset = Event.objects.filter(pk=event.pk) # restrict event to the parent event for the occurrence
+
+    def clean(self):
+        super(OccurrenceForm, self).clean() # clean the form data
+        check_occurrence_conflicts(self)
+        return self.cleaned_data
+
     class Meta(object):
         model = Occurrence
-        exclude = ('original_start', 'original_end', 'event', )
+        exclude = ('original_start', 'original_end', )
 
 
 class EventAdminForm(forms.ModelForm):
@@ -96,9 +106,9 @@ def check_event_conflicts(form):
     end_recurring_period = form.cleaned_data.get('end_recurring_period')
     primKey = form.instance.pk #Instance primary key
 
-    if 'end' in form.cleaned_data and 'start' in form.cleaned_data:
-        if form.cleaned_data['end'] <= form.cleaned_data['start']:
-            raise forms.ValidationError(_(u"The end time must be later than start time!"))
+    # if 'end' in form.cleaned_data and 'start' in form.cleaned_data:
+    #     if form.cleaned_data['end'] <= form.cleaned_data['start']:
+    #         raise forms.ValidationError(_(u"The end time must be later than start time!"))
 
     if rule and not end_recurring_period:
         raise forms.ValidationError(_(u"Recurring Events (with rules) must have a value for 'End Recurring Period'!"))
@@ -115,3 +125,18 @@ def check_event_conflicts(form):
         e_occs = event.get_occurrences(start, end_recurring_period)
         for occ in e_occs:
             check_occ_conflicts(occ, events)
+
+def check_occurrence_conflicts(form):
+    start = form.cleaned_data.get('start')
+    end = form.cleaned_data.get('end')
+    cancelled = form.cleaned_data.get('cancelled')
+    event = form.cleaned_data.get('event')
+
+    if cancelled:
+        return
+    # Check for conflicts against occurrences from other events
+    events = Event.objects.filter(calendar=event.calendar)
+    events = events.exclude(pk=event.pk)
+    temp_event = Event(calendar=event.calendar, start=start, end=end, title='temp_oneoff_event')
+    occ = temp_event.get_occurrence(start)
+    check_occ_conflicts(occ, events)
