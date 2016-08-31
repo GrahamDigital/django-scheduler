@@ -196,6 +196,12 @@ class EventEditMixin(EventEditPermissionMixin, EventMixin):
 
 class EventView(EventMixin, DetailView):
     template_name = 'schedule/event.html'
+    def get_context_data(self, **kwargs):
+        context = super(EventView, self).get_context_data(**kwargs)
+        event = Event.objects.get(pk=self.kwargs['event_id'])
+        context['can_edit'] = CHECK_EVENT_PERM_FUNC(event, self.request.user)
+        return context
+
 
 
 class EditEventView(EventEditMixin, UpdateView):

@@ -22,6 +22,7 @@
   </a>
   &nbsp;
   {% endif %}
+  {% if can_edit %}
   <a href="{% url "edit_event" event.calendar.slug event.id %}">
    {% trans "Edit" %} <span class="glyphicon glyphicon-pencil"></span>
   </a>
@@ -29,6 +30,7 @@
   <a href="{% url "delete_event" event.id %}">
    {% trans "Delete" %} <span class="glyphicon glyphicon-remove"></span>
   </a>
+  {% endif %}
 </div>
 <h2 align="center">{{event.title}}</h2>
 <table align="center" class="table table-hover">

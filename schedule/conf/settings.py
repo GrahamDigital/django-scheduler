@@ -12,7 +12,6 @@ SHOW_CANCELLED_OCCURRENCES = get_config('SHOW_CANCELLED_OCCURRENCES', False)
 # (and occurrence). Used by check_edit_permission decorator
 # if ob==None we check permission to add occurrence
 CHECK_EVENT_PERM_FUNC = get_config('CHECK_EVENT_PERM_FUNC', None)
-
 if not CHECK_EVENT_PERM_FUNC:
     def check_event_permission(ob, user):
         if user.is_superuser:
