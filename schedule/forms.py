@@ -42,9 +42,6 @@ class EventForm(SpanForm):
         super(EventForm, self).__init__(*args, **kwargs)
         calendar = kwargs['initial']['calendar']
         self.fields['calendar'].queryset = Calendar.objects.filter(slug=calendar.slug) # restrict calendar choice to only the calendar passed through the url
-        if 'event_id' in kwargs['initial']:
-            event = Event.objects.get(pk=kwargs['initial']['event_id'])
-            self.fields['rule'].queryset = Rule.objects.filter(name=event.rule.name) # don't allow rule changes for saved events (breaks the generation of persisted occurrences)
 
     end_recurring_period = forms.DateTimeField(label=_(u"End recurring period"),
                                                help_text=_(u"This date is ignored for one time only events."),

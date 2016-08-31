@@ -8,7 +8,8 @@
 
 <p>{% blocktrans with calendar_name=calendar.name %}Name: {{calendar_name}}{% endblocktrans %}</p>
 <p>{% blocktrans with calendar_slug=calendar.slug %}Slug: {{calendar_slug}}{% endblocktrans %}</p>
-<p>{% blocktrans with events_count %}Event count: {{events_count}}{% endblocktrans %}</p>
+<p><a href="/stations/stations">{% blocktrans with station=calendar.station %}Station: {{station}}{% endblocktrans %} </a></p>
+<p>{% blocktrans %}Event count: {{events_count}}{% endblocktrans %}</p>
 
 <div>
     <p>{% trans "See as:" %}</p>

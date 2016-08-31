@@ -27,14 +27,15 @@ from schedule.utils import (
     check_event_permissions,
     check_calendar_permissions,
     coerce_date_dict,
-    check_occurrence_permissions)
+    check_occurrence_permissions,
+    calendar_view_permissions)
 
 
 class CalendarViewPermissionMixin(object):
     @classmethod
     def as_view(cls, **initkwargs):
         view = super(CalendarViewPermissionMixin, cls).as_view(**initkwargs)
-        return check_calendar_permissions(view)
+        return calendar_view_permissions(view)
 
 
 class EventEditPermissionMixin(object):
@@ -68,6 +69,14 @@ class CalendarMixin(CalendarViewPermissionMixin):
 
 class CalendarView(CalendarMixin, DetailView):
     template_name = 'schedule/calendar.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CalendarView, self).get_context_data()
+        calendar_slug = self.kwargs['calendar_slug']
+        calendar = Calendar.objects.get(slug=calendar_slug)
+        context['calendar'] = calendar
+        context['events_count'] = len(calendar.events.all())
+        return context
 
 
 class FullCalendarView(CalendarMixin, DetailView):
@@ -118,11 +127,26 @@ class OccurrenceMixin(CalendarViewPermissionMixin, TemplateResponseMixin):
     form_class = OccurrenceForm
 
 
-class OccurrenceEditMixin(CancelButtonMixin, OccurrenceEditPermissionMixin, OccurrenceMixin):
+class OccurrenceEditMixin(OccurrenceEditPermissionMixin, OccurrenceMixin):
     def get_initial(self):
         initial_data = super(OccurrenceEditMixin, self).get_initial()
         _, self.object = get_occurrence(**self.kwargs)
         return initial_data
+
+    def get_context_data(self, **kwargs):
+        event, occurrence = get_occurrence(**self.kwargs)
+        context = super(OccurrenceEditMixin, self).get_context_data()
+        context['event'] = event
+        context['occurrence'] = occurrence
+        return context
+
+    def post(self, request, *args, **kwargs):
+        event, occurrence = get_occurrence(**kwargs)
+        if "cancel" in request.POST:
+            return HttpResponseRedirect(event.get_absolute_url())
+        else:
+            return super(OccurrenceEditMixin, self).post(request, *args, **kwargs)
+
 
 
 class OccurrenceView(OccurrenceMixin, DetailView):
@@ -167,9 +191,8 @@ class EventMixin(CalendarViewPermissionMixin):
     pk_url_kwarg = 'event_id'
 
 
-class EventEditMixin(CancelButtonMixin, EventEditPermissionMixin, EventMixin):
+class EventEditMixin(EventEditPermissionMixin, EventMixin):
     pass
-
 
 class EventView(EventMixin, DetailView):
     template_name = 'schedule/event.html'
@@ -201,6 +224,13 @@ class EditEventView(EventEditMixin, UpdateView):
         )
         event.save()
         return super(EditEventView, self).form_valid(form)
+
+    def post(self, request, *args, **kwargs):
+        event = Event.objects.get(pk=self.kwargs['event_id'])
+        if "cancel" in request.POST:
+            return HttpResponseRedirect(event.get_absolute_url()) # redirect to event if action cancelled
+        else:
+            return super(EditEventView, self).post(request, *args, **kwargs)
 
 
 class CreateEventView(EventEditMixin, CreateView):

@@ -209,6 +209,23 @@ def check_calendar_permissions(function):
         return function(request, *args, **kwargs)
     return decorator
 
+def calendar_view_permissions(function):
+    @wraps(function)
+    def decorator(request, *args, **kwargs):
+        if CALENDAR_VIEW_PERM:
+            user = request.user
+            if not user:
+                return HttpResponseRedirect(settings.LOGIN_URL)
+            occurrence, event, calendar = get_objects(request, *args, **kwargs)
+            if calendar:
+                allowed = CALENDAR_VIEW_PERM(calendar, user)
+                if not allowed:
+                    return HttpResponseRedirect(settings.LOGIN_URL)
+                # all checks passed
+                return function(request, *args, **kwargs)
+            return HttpResponseNotFound('<h1>Page not found</h1>')
+        return function(request, *args, **kwargs)
+    return decorator
 
 def coerce_date_dict(date_dict):
     """
