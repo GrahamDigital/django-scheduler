@@ -52,13 +52,9 @@ class EventForm(SpanForm):
         super(EventForm, self).__init__(*args, **kwargs)
         calendar = kwargs['initial']['calendar']
         self.fields['calendar'].queryset = Calendar.objects.filter(slug=calendar.slug) # restrict calendar choice to only the calendar passed through the url
-        if ('instance' in kwargs) and (kwargs['instance'] is not None): # if editing an instance
-            event = kwargs['instance']
-            if event.occurrence_set.all(): #if there are any persisted occurrences
-                self.fields['rule'].queryset = Rule.objects.filter(pk=event.rule.pk) # don't allow rule changes if there are persisted occurrences
 
     end_recurring_period = forms.DateTimeField(label=_(u"End recurring period"),
-                                               help_text=_(u"This date is ignored for one time only events."),
+                                               help_text=_(u"e.g. '2018-1-1'. This date is ignored for one time only events."),
                                                required=False)
     def clean(self):
         super(EventForm, self).clean() # clean the form data
@@ -68,6 +64,34 @@ class EventForm(SpanForm):
     class Meta(object):
         model = Event
         exclude = ('created_on', 'creator')
+
+class EditEventForm(EventForm):
+    # Editing events with persisted occurrences is dangerous.
+    # Changing rules or recurrence dates could break the whole data set.
+    # Need a special form to prevent this from happening.
+    def __init__(self, *args, **kwargs):
+        super(EditEventForm, self).__init__(*args, **kwargs)
+        if ('instance' in kwargs) and (kwargs['instance'] is not None): # if editing an instance
+            event = kwargs['instance']
+            if event.occurrence_set.all(): #if there are any persisted occurrences
+                self.fields['rule'].queryset = Rule.objects.filter(pk=event.rule.pk) # don't allow rule changes if there are persisted occurrences
+
+    def clean(self):
+        event = Event.objects.get(pk=self.instance.pk)
+        print event
+        super(EditEventForm, self).clean() # clean the form data
+        return self.cleaned_data
+
+    print self.instance
+
+    class Meta(object):
+        model = Event
+        exclude = ('created_on', 'creator')
+        print self.instance
+
+
+
+
 
 # """ Validation Functions """
 def time_conflicts(start1,end1,start2,end2):
@@ -103,6 +127,7 @@ def check_occ_conflicts(occ, events):
             'endtime': pocc.end.strftime('%a %Y-%m-%d %H:%M')})
 
 def check_event_conflicts(form):
+    print "CHECK EVENT CONFLICTS CALLED!!!!"
     calendar = form.cleaned_data.get('calendar')
     start = form.cleaned_data.get('start')
     end = form.cleaned_data.get('end')

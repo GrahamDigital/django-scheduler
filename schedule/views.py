@@ -20,7 +20,7 @@ from django.conf import settings
 from schedule.conf.settings import (GET_EVENTS_FUNC, OCCURRENCE_CANCEL_REDIRECT,
                                     EVENT_NAME_PLACEHOLDER, CHECK_EVENT_PERM_FUNC,
                                     CHECK_OCCURRENCE_PERM_FUNC, USE_FULLCALENDAR)
-from schedule.forms import EventForm, OccurrenceForm
+from schedule.forms import EventForm, OccurrenceForm, EditEventForm
 from schedule.models import Calendar, Occurrence, Event
 from schedule.periods import weekday_names
 from schedule.utils import (
@@ -208,7 +208,7 @@ class EventView(EventMixin, DetailView):
 
 
 class EditEventView(EventEditMixin, UpdateView):
-    form_class = EventForm
+    form_class = EditEventForm
     template_name = 'schedule/create_event.html'
 
     def get_initial(self):
