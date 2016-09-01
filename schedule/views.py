@@ -29,6 +29,7 @@ from schedule.utils import (
     coerce_date_dict,
     check_occurrence_permissions,
     calendar_view_permissions)
+from schedule.templatetags.scheduletags import querystring_for_date
 
 
 class CalendarViewPermissionMixin(object):
@@ -141,12 +142,13 @@ class OccurrenceEditMixin(OccurrenceEditPermissionMixin, OccurrenceMixin):
         return context
 
     def post(self, request, *args, **kwargs):
-        event, occurrence = get_occurrence(**kwargs)
+        _, occurrence = get_occurrence(**kwargs)
         if "cancel" in request.POST:
-            return HttpResponseRedirect(event.get_absolute_url())
+            return HttpResponseRedirect(reverse('day_calendar',
+                kwargs={'calendar_slug':occurrence.event.calendar.slug})
+                + querystring_for_date(occurrence.start, 3)) # send user back to day calendar for occurrence start date
         else:
             return super(OccurrenceEditMixin, self).post(request, *args, **kwargs)
-
 
 
 class OccurrenceView(OccurrenceMixin, DetailView):
