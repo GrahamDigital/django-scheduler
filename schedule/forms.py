@@ -65,29 +65,30 @@ class EventForm(SpanForm):
         model = Event
         exclude = ('created_on', 'creator')
 
-class EditEventForm(EventForm):
+class EditEventForm(forms.ModelForm):
     # Editing events with persisted occurrences is dangerous.
-    # Changing rules or recurrence dates could break the whole data set.
+    # Changing rules or times could break the whole data set.
     # Need a special form to prevent this from happening.
     def __init__(self, *args, **kwargs):
         super(EditEventForm, self).__init__(*args, **kwargs)
-        if ('instance' in kwargs) and (kwargs['instance'] is not None): # if editing an instance
-            event = kwargs['instance']
-            if event.occurrence_set.all(): #if there are any persisted occurrences
-                self.fields['rule'].queryset = Rule.objects.filter(pk=event.rule.pk) # don't allow rule changes if there are persisted occurrences
+        # if ('instance' in kwargs) and (kwargs['instance'] is not None): # if editing an instance
+        #     event = kwargs['instance']
+            # if event.occurrence_set.all(): #if there are any persisted occurrences
+                # self.fields['rule'].queryset = Rule.objects.filter(pk=event.rule.pk) # don't allow rule changes if there are persisted occurrences
 
     def clean(self):
         event = Event.objects.get(pk=self.instance.pk)
-        print event
+        print event.end_recurring_period
         super(EditEventForm, self).clean() # clean the form data
+        # event.end_recurring_period = self.cleaned_data.get('end_recurring_period')
+        print event.end_recurring_period
         return self.cleaned_data
 
-    print self.instance
 
     class Meta(object):
         model = Event
-        exclude = ('created_on', 'creator')
-        print self.instance
+        fields = None #('end_recurring_period',)
+
 
 
 

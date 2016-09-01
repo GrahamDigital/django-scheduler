@@ -208,7 +208,13 @@ class EventView(EventMixin, DetailView):
 
 
 class EditEventView(EventEditMixin, UpdateView):
-    form_class = EditEventForm
+    def get_form_class(self):
+        event = self.get_object()
+        if event.occurrence_set.all(): #if there are any persisted occurrences
+            return EditEventForm
+        else:
+            return EventForm
+    # form_class = EditEventForm
     template_name = 'schedule/create_event.html'
 
     def get_initial(self):
