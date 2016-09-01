@@ -40,7 +40,8 @@ class EventAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': [
-                ('title', 'color_event'),
+                ('title',),
+                # ('color_event'),
                 ('description',),
                 ('start', 'end'),
                 ('creator', 'calendar'),
