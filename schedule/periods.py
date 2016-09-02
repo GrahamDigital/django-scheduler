@@ -9,7 +9,7 @@ from django.utils.translation import ugettext
 from django.utils.encoding import python_2_unicode_compatible
 from django.template.defaultfilters import date as date_filter
 from django.utils.dates import WEEKDAYS, WEEKDAYS_ABBR
-from schedule.conf.settings import SHOW_CANCELLED_OCCURRENCES , TIME_ZONE
+from schedule.conf.settings import SHOW_CANCELLED_OCCURRENCES
 from schedule.models import Occurrence
 from django.utils import timezone
 
@@ -36,7 +36,7 @@ class Period(object):
     based on its events, and its time period (start and end).
     """
     def __init__(self, events, start, end, parent_persisted_occurrences=None,
-                 occurrence_pool=None, tzinfo=TIME_ZONE):
+                 occurrence_pool=None, tzinfo=pytz.utc):
 
         self.utc_start = self._normalize_timezone_to_utc(start, tzinfo)
 

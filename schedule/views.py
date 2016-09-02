@@ -20,7 +20,7 @@ from django.conf import settings
 from schedule.conf.settings import (GET_EVENTS_FUNC, OCCURRENCE_CANCEL_REDIRECT,
                                     EVENT_NAME_PLACEHOLDER, CHECK_EVENT_PERM_FUNC,
                                     CHECK_OCCURRENCE_PERM_FUNC, USE_FULLCALENDAR)
-from schedule.forms import EventForm, OccurrenceForm, EditEventForm
+from schedule.forms import EventForm, OccurrenceForm
 from schedule.models import Calendar, Occurrence, Event
 from schedule.periods import weekday_names
 from schedule.utils import (
@@ -208,13 +208,13 @@ class EventView(EventMixin, DetailView):
 
 
 class EditEventView(EventEditMixin, UpdateView):
-    def get_form_class(self):
-        event = self.get_object()
-        if event.occurrence_set.all(): #if there are any persisted occurrences
-            return EditEventForm
-        else:
-            return EventForm
-    # form_class = EditEventForm
+    # def get_form_class(self):
+    #     event = self.get_object()
+    #     if event.occurrence_set.all(): #if there are any persisted occurrences
+    #         return EditEventForm
+    #     else:
+    #         return EventForm
+    form_class = EventForm
     template_name = 'schedule/create_event.html'
 
     def get_initial(self):
@@ -233,10 +233,14 @@ class EditEventView(EventEditMixin, UpdateView):
         dte = datetime.timedelta(
             minutes=int((event.end - old_event.end).total_seconds() / 60)
         )
-        event.occurrence_set.all().update(
-            original_start=F('original_start') + dts,
-            original_end=F('original_end') + dte,
-        )
+        # event.occurrence_set.all().update(
+        #     original_start=F('original_start') + dts,
+        #     original_end=F('original_end') + dte,
+        # )
+        for occ in event.occurrence_set.all():
+            occ.original_start = occ.original_start + dts
+            occ.original_end = occ.original_end + dte
+
         event.save()
         return super(EditEventView, self).form_valid(form)
 
@@ -484,10 +488,14 @@ def _api_move_or_resize_by_code(user, id, existed, delta, resize, event_id):
         event.end = event.end + delta
         if CHECK_EVENT_PERM_FUNC(event, user):
             event.save()
-            event.occurrence_set.all().update(
-                original_start=F('original_start') + dts,
-                original_end=F('original_end') + dte,
-            )
+            # event.occurrence_set.all().update(
+            #     original_start=F('original_start') + dts,
+            #     original_end=F('original_end') + dte,
+            # )
+            for occ in event.occurrence_set.all():
+                occ.original_start = occ.original_start + dts
+                occ.original_end = occ.original_end + dte
+
             response_data['status'] = "OK"
     return response_data
 

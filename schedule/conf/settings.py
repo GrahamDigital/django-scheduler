@@ -1,8 +1,5 @@
 from annoying.functions import get_config
 
-import pytz
-TIME_ZONE=pytz.utc # Always use UTC times
-
 # whether to display cancelled occurrences
 # (if they are displayed then they have a css class "cancelled")
 # this controls behaviour of Period.classify_occurrence method

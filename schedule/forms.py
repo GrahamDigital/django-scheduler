@@ -65,33 +65,6 @@ class EventForm(SpanForm):
         model = Event
         exclude = ('created_on', 'creator')
 
-class EditEventForm(forms.ModelForm):
-    # Editing events with persisted occurrences is dangerous.
-    # Changing rules or times could break the whole data set.
-    # Need a special form to prevent this from happening.
-    def __init__(self, *args, **kwargs):
-        super(EditEventForm, self).__init__(*args, **kwargs)
-        # if ('instance' in kwargs) and (kwargs['instance'] is not None): # if editing an instance
-        #     event = kwargs['instance']
-            # if event.occurrence_set.all(): #if there are any persisted occurrences
-                # self.fields['rule'].queryset = Rule.objects.filter(pk=event.rule.pk) # don't allow rule changes if there are persisted occurrences
-
-    def clean(self):
-        event = Event.objects.get(pk=self.instance.pk)
-        print event.end_recurring_period
-        super(EditEventForm, self).clean() # clean the form data
-        # event.end_recurring_period = self.cleaned_data.get('end_recurring_period')
-        print event.end_recurring_period
-        return self.cleaned_data
-
-
-    class Meta(object):
-        model = Event
-        fields = None #('end_recurring_period',)
-
-
-
-
 
 
 # """ Validation Functions """
@@ -136,9 +109,9 @@ def check_event_conflicts(form):
     end_recurring_period = form.cleaned_data.get('end_recurring_period')
     primKey = form.instance.pk #Instance primary key
 
-    # if 'end' in form.cleaned_data and 'start' in form.cleaned_data:
-    #     if form.cleaned_data['end'] <= form.cleaned_data['start']:
-    #         raise forms.ValidationError(_(u"The end time must be later than start time!"))
+    if 'end' in form.cleaned_data and 'start' in form.cleaned_data:
+        if form.cleaned_data['end'] <= form.cleaned_data['start']:
+            raise forms.ValidationError(_(u"The end time must be later than start time!"))
 
     if rule and not end_recurring_period:
         raise forms.ValidationError(_(u"Recurring Events (with rules) must have a value for 'End Recurring Period'!"))
