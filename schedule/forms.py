@@ -101,7 +101,6 @@ def check_occ_conflicts(occ, events):
             'endtime': pocc.end.strftime('%a %Y-%m-%d %H:%M')})
 
 def check_event_conflicts(form):
-    print "CHECK EVENT CONFLICTS CALLED!!!!"
     calendar = form.cleaned_data.get('calendar')
     start = form.cleaned_data.get('start')
     end = form.cleaned_data.get('end')

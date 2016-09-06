@@ -13,42 +13,42 @@ from schedule.views import (
 
 urlpatterns = [
     # urls for Calendars
-    url(r'^calendar/$',
+    url(r'^epg/$',
         ListView.as_view(queryset=Calendar.objects.all(),
                          template_name='schedule/calendar_list.html'),
         name="calendar_list"),
 
-    url(r'^calendar/year/(?P<calendar_slug>[-\w]+)/$',
+    url(r'^epg/year/(?P<calendar_slug>[-\w]+)/$',
         CalendarByPeriodsView.as_view(template_name='schedule/calendar_year.html'),
         name="year_calendar",
         kwargs={'period': Year}),
 
-    url(r'^calendar/tri_month/(?P<calendar_slug>[-\w]+)/$',
+    url(r'^epg/tri_month/(?P<calendar_slug>[-\w]+)/$',
         CalendarByPeriodsView.as_view(template_name='schedule/calendar_tri_month.html'),
         name="tri_month_calendar",
         kwargs={'period': Month}),
 
-    url(r'^calendar/compact_month/(?P<calendar_slug>[-\w]+)/$',
+    url(r'^epg/compact_month/(?P<calendar_slug>[-\w]+)/$',
         CalendarByPeriodsView.as_view(template_name='schedule/calendar_compact_month.html'),
         name="compact_calendar",
         kwargs={'period': Month}),
 
-    url(r'^calendar/month/(?P<calendar_slug>[-\w]+)/$',
+    url(r'^epg/month/(?P<calendar_slug>[-\w]+)/$',
         CalendarByPeriodsView.as_view(template_name='schedule/calendar_month.html'),
         name="month_calendar",
         kwargs={'period': Month}),
 
-    url(r'^calendar/week/(?P<calendar_slug>[-\w]+)/$',
+    url(r'^epg/week/(?P<calendar_slug>[-\w]+)/$',
         CalendarByPeriodsView.as_view(template_name='schedule/calendar_week.html'),
         name="week_calendar",
         kwargs={'period': Week}),
 
-    url(r'^calendar/daily/(?P<calendar_slug>[-\w]+)/$',
+    url(r'^epg/daily/(?P<calendar_slug>[-\w]+)/$',
         CalendarByPeriodsView.as_view(template_name='schedule/calendar_day.html'),
         name="day_calendar",
         kwargs={'period': Day}),
 
-    url(r'^calendar/(?P<calendar_slug>[-\w]+)/$',
+    url(r'^epg/(?P<calendar_slug>[-\w]+)/$',
         CalendarView.as_view(),
         name="calendar_home",
         ),
