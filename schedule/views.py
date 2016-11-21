@@ -347,6 +347,20 @@ def get_next_url(request, default):
         next_url = _next_url
     return next_url
 
+def api_fetch(request):
+    start = request.GET.get('start')
+    end = request.GET.get('end')
+    calendar_slug = request.GET.get('calendar_slug')
+
+    # print request
+    # response_data={start}
+    try:
+        response_data = _api_occurrences(start, end, calendar_slug)
+    except (ValueError, Calendar.DoesNotExist) as e:
+        return HttpResponseBadRequest(e)
+
+    return JsonResponse(response_data, safe=False)
+
 
 @check_calendar_permissions
 def api_occurrences(request):
@@ -433,7 +447,7 @@ def _api_occurrences(start, end, calendar_slug):
                 "end": occurrence.end.isoformat(),
                 "existed": existed,
                 "event_id": occurrence.event.id,
-                "color": occurrence.event.color_event,
+                # "color": occurrence.event.color_event,
                 "description": occurrence.description,
                 "rule": recur_rule,
                 "end_recurring_period": recur_period_end,

@@ -9,7 +9,7 @@ from schedule.views import (
     OccurrenceView, EditOccurrenceView, DeleteEventView,
     EditEventView, CreateEventView, OccurrencePreview,
     CreateOccurrenceView, CancelOccurrenceView, FullCalendarView,
-    api_select_create, api_move_or_resize_by_code, api_occurrences)
+    api_select_create, api_move_or_resize_by_code, api_occurrences, api_fetch)
 
 urlpatterns = [
     # urls for Calendars
@@ -97,7 +97,8 @@ urlpatterns = [
     url(r'^ical/calendar/(.*)/$', CalendarICalendar(), name='calendar_ical'),
 
     # api urls
-    url(r'^api/occurrences', api_occurrences, name='api_occurences'),
+    # url(r'^api/occurrences', api_occurrences, name='api_occurrences'),
+    url(r'^api/occurrences', api_fetch, name='api_occurrences'),
     url(r'^api/move_or_resize/$',
         api_move_or_resize_by_code,
         name='api_move_or_resize'),
