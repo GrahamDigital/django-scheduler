@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from schedule.models import Calendar, Event, CalendarRelation, Rule
+from schedule.models import Calendar, Event, CalendarRelation, Rule, LivestreamUrl
 from schedule.forms import EventAdminForm
 
 
@@ -12,6 +12,18 @@ class CalendarAdminOptions(admin.ModelAdmin):
         (None, {
             'fields': [
                 ('name', 'slug','station'),
+            ]
+        }),
+    )
+
+class LivestreamUrlAdmin(admin.ModelAdmin):
+    list_display = ('url', 'station')
+    list_filter = ('station',)
+    search_fields = ['url', 'station__name']
+    fieldsets = (
+        (None, {
+            'fields': [
+                ('url', 'station'),
             ]
         }),
     )
@@ -32,8 +44,8 @@ class CalendarRelationAdmin(admin.ModelAdmin):
 
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('title', 'start', 'end', 'calendar', 'rule', 'end_recurring_period')
-    list_filter = ('calendar__station','calendar', 'start', 'rule', 'end_recurring_period')
+    list_display = ('title', 'start', 'end', 'calendar', 'rule', 'end_recurring_period', 'livestreamUrl')
+    list_filter = ('calendar__station','calendar', 'start', 'rule', 'end_recurring_period', 'livestreamUrl')
     ordering = ('-start',)
     date_hierarchy = 'start'
     search_fields = ('title', 'description')
@@ -41,8 +53,8 @@ class EventAdmin(admin.ModelAdmin):
         (None, {
             'fields': [
                 ('title',),
-                # ('color_event'),
                 ('description',),
+                ('livestreamUrl'),
                 ('start', 'end'),
                 ('creator', 'calendar'),
                 ('rule', 'end_recurring_period'),
@@ -57,11 +69,14 @@ class EventAdmin(admin.ModelAdmin):
         if not request.user.is_superuser:
             qs = qs.filter(calendar__station__in=request.user.stations.all())
         return qs
-    # Override options for Calendar on Event add form
+    # Override options for Calendar and LivestreamUrl on Event add form
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "calendar" and not request.user.is_superuser:
             kwargs["queryset"] = Calendar.objects.filter(station__in=request.user.stations.all())
             return db_field.formfield(**kwargs)
+        # if db_field.name == "livestreamUrl" and not request.user.is_superuser:
+        #     kwargs["queryset"] = LivestreamUrl.objects.filter(station__in=request.user.stations.all())
+        #     return db_field.formfield(**kwargs)
         return super(EventAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -71,6 +86,7 @@ class RuleAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
 
 
+admin.site.register(LivestreamUrl, LivestreamUrlAdmin)
 admin.site.register(Calendar, CalendarAdminOptions)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Rule, RuleAdmin)
