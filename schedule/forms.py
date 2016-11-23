@@ -2,7 +2,6 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 from schedule.models import Event, Occurrence, Calendar, Rule
 from schedule.periods import Period
-from schedule.widgets import SpectrumColorPicker
 import datetime
 
 
@@ -41,11 +40,9 @@ class EventAdminForm(forms.ModelForm):
         return self.cleaned_data
 
     class Meta:
-        exclude = []
         model = Event
-        widgets = {
-            'color_event': SpectrumColorPicker,
-        }
+        exclude = []#('creator',)
+
 
 class EventForm(SpanForm):
     def __init__(self, *args, **kwargs):

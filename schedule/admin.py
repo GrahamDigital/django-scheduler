@@ -56,7 +56,7 @@ class EventAdmin(admin.ModelAdmin):
                 ('description',),
                 ('livestreamUrl'),
                 ('start', 'end'),
-                ('creator', 'calendar'),
+                ('creator', 'calendar',),
                 ('rule', 'end_recurring_period'),
             ]
         }),
