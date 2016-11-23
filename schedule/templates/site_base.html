@@ -1,4 +1,6 @@
 {% load i18n static %}
+{% load tz %}
+{% localtime off %}
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}" xml:lang="{{ LANGUAGE_CODE }}" lang="{{ LANGUAGE_CODE }}">
     <head>
@@ -36,3 +38,4 @@
 
     </body>
 </html>
+{% endlocaltime %}
