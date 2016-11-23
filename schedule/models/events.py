@@ -16,7 +16,7 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
-from stations.models import Stations
+from stations.models import Station
 
 from schedule.models.livestreamUrls import LivestreamUrl
 from schedule.models.rules import Rule

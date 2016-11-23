@@ -106,5 +106,5 @@ urlpatterns = [
         api_select_create,
         name='api_select_create'),
 
-    url(r'^$', ListView.as_view(queryset=Calendar.objects.all()), name='schedule'),
+    # url(r'^$', ListView.as_view(queryset=Calendar.objects.all()), name='schedule'),
 ]

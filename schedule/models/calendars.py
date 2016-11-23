@@ -15,7 +15,7 @@ from schedule.utils import EventListManager, get_model_bases
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
-from stations.models import Stations
+from stations.models import Station
 
 from schedule.conf.settings import USE_FULLCALENDAR
 
@@ -144,7 +144,7 @@ class Calendar(with_metaclass(ModelBase, *get_model_bases())):
     '''
 
     name = models.CharField(_("name"), max_length=200)
-    station = models.ForeignKey(Stations, help_text=_("The station which owns this calendar"))
+    station = models.ForeignKey(Station, help_text=_("The station which owns this calendar"))
     slug = models.SlugField(_("slug"), max_length=200)
     objects = CalendarManager()
 
