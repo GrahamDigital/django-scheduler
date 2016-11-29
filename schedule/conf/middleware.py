@@ -8,8 +8,6 @@ class TimezoneMiddleware(object):
         split_path = path.split('/')
         if 'schedule' in [split_path[0], split_path[1]]:
             tz = pytz.timezone('UTC')
-
-        if tz:
             timezone.activate(tz)
         else:
             timezone.deactivate()
