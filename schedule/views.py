@@ -347,37 +347,31 @@ def get_next_url(request, default):
         next_url = _next_url
     return next_url
 
-def api_fetch(request):
-    start = request.GET.get('start')
-    end = request.GET.get('end')
-    calendar_slug = request.GET.get('calendar_slug')
-
-    # print request
-    # response_data={start}
-    try:
-        response_data = _api_occurrences(start, end, calendar_slug)
-    except (ValueError, Calendar.DoesNotExist) as e:
-        return HttpResponseBadRequest(e)
-
-    return JsonResponse(response_data, safe=False)
+def get_boolean_from_request(request, key, default=False):
+    value = request.GET.get(key, None)
+    if value in ['True', 'true', '1', 1]:
+        return True
+    elif value in ['False', 'false', '0', 0]:
+        return False
+    else:
+        return default
 
 
-@check_calendar_permissions
 def api_occurrences(request):
     start = request.GET.get('start')
     end = request.GET.get('end')
     calendar_slug = request.GET.get('calendar_slug')
-
+    include_cancelled = get_boolean_from_request(request,
+        'include_cancelled', default=False)
     try:
-        response_data = _api_occurrences(start, end, calendar_slug)
+        response_data = _api_occurrences(start, end, calendar_slug,
+            include_cancelled=include_cancelled)
     except (ValueError, Calendar.DoesNotExist) as e:
         return HttpResponseBadRequest(e)
 
     return JsonResponse(response_data, safe=False)
 
-
-def _api_occurrences(start, end, calendar_slug):
-
+def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
     if not start or not end:
         raise ValueError('Start and end parameters are required')
     # version 2 of full calendar
@@ -427,6 +421,8 @@ def _api_occurrences(start, end, calendar_slug):
     for event in event_list:
         occurrences = event.get_occurrences(start, end)
         for occurrence in occurrences:
+            if occurrence.cancelled and not include_cancelled:
+                continue
             occurrence_id = i + occurrence.event.id
             existed = False
 
@@ -447,8 +443,8 @@ def _api_occurrences(start, end, calendar_slug):
                 "end": occurrence.end.isoformat(),
                 "existed": existed,
                 "event_id": occurrence.event.id,
-                # "color": occurrence.event.color_event,
                 "description": occurrence.description,
+                "livestream_url": occurrence.livestreamUrl.url,
                 "rule": recur_rule,
                 "end_recurring_period": recur_period_end,
                 "creator": str(occurrence.event.creator),
