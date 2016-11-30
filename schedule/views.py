@@ -356,6 +356,21 @@ def get_boolean_from_request(request, key, default=False):
     else:
         return default
 
+def live_now(request):
+    calendar_slug = request.GET.get('calendar_slug')
+    # Get current local time
+    calendar = Calendar.objects.get(slug=calendar_slug)
+    tz = pytz.timezone(calendar.timezone.name)
+    utc_now = datetime.datetime.utcnow()
+    current_local = utc_now + tz.utcoffset(utc_now)
+    start = current_local.replace(tzinfo=pytz.UTC)
+    dt = datetime.timedelta(seconds=1)
+    end = start + dt
+    try:
+        response_data = _api_occurrences(start, end, calendar_slug)
+    except (ValueError, Calendar.DoesNotExist) as e:
+        return HttpResponseBadRequest(e)
+    return JsonResponse(response_data, safe=False)
 
 def api_occurrences(request):
     start = request.GET.get('start')
@@ -363,19 +378,7 @@ def api_occurrences(request):
     calendar_slug = request.GET.get('calendar_slug')
     include_cancelled = get_boolean_from_request(request,
         'include_cancelled', default=False)
-    try:
-        response_data = _api_occurrences(start, end, calendar_slug,
-            include_cancelled=include_cancelled)
-    except (ValueError, Calendar.DoesNotExist) as e:
-        return HttpResponseBadRequest(e)
 
-    return JsonResponse(response_data, safe=False)
-
-def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
-    if not start or not end:
-        raise ValueError('Start and end parameters are required')
-    # version 2 of full calendar
-    # TODO: improve this code with date util package
     if '-' in start:
         def convert(ddatetime):
             if ddatetime:
@@ -392,6 +395,17 @@ def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
         utc = pytz.UTC
         start = utc.localize(start)
         end = utc.localize(end)
+    try:
+        response_data = _api_occurrences(start, end, calendar_slug,
+            include_cancelled=include_cancelled)
+    except (ValueError, Calendar.DoesNotExist) as e:
+        return HttpResponseBadRequest(e)
+
+    return JsonResponse(response_data, safe=False)
+
+def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
+    if not start or not end:
+        raise ValueError('Start and end parameters are required')
 
     if calendar_slug:
         # will raise DoesNotExist exception if no match
@@ -452,6 +466,7 @@ def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
                 "cancelled": occurrence.cancelled,
             })
     return response_data
+
 
 
 @require_POST
