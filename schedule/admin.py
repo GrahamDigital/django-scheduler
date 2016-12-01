@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from schedule.models import Calendar, Event, CalendarRelation, Rule, LivestreamUrl
-from schedule.models.calendars import Timezone
 from schedule.forms import EventAdminForm
 
 
@@ -12,7 +11,7 @@ class CalendarAdminOptions(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': [
-                ('name', 'slug','station', 'timezone'),
+                ('name', 'slug','station',),
             ]
         }),
     )
@@ -29,13 +28,6 @@ class LivestreamUrlAdmin(admin.ModelAdmin):
         }),
     )
 
-class TimezoneAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    fieldsets = (
-        (None, {
-            'fields': [('name'), ]
-        }),
-    )
 
 class CalendarRelationAdmin(admin.ModelAdmin):
     list_display = ('calendar', 'content_object')
@@ -99,4 +91,3 @@ admin.site.register(Calendar, CalendarAdminOptions)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Rule, RuleAdmin)
 admin.site.register(CalendarRelation, CalendarRelationAdmin)
-admin.site.register(Timezone, TimezoneAdmin)

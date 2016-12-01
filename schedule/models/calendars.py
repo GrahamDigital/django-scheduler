@@ -19,19 +19,6 @@ from stations.models import Station
 
 from schedule.conf.settings import USE_FULLCALENDAR
 
-class Timezone(models.Model):
-    name=models.CharField(max_length=100,
-        help_text="E.g. 'America/Detroit'. See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        app_label = 'schedule'
-        verbose_name = 'timezone'
-        verbose_name_plural = 'timezones'
-
-
 class CalendarManager(models.Manager):
     """
     >>> user1 = User(username='tony')
@@ -157,7 +144,6 @@ class Calendar(with_metaclass(ModelBase, *get_model_bases())):
 
     name = models.CharField(_("name"), max_length=200)
     station = models.ForeignKey(Station, help_text=_("The station which owns this calendar"))
-    timezone = models.ForeignKey(Timezone, default=1, null=True, help_text=_("The timezone region name for this calendar"))
     slug = models.SlugField(_("slug"), max_length=200)
     objects = CalendarManager()
 

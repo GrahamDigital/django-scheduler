@@ -60,7 +60,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
     end = models.DateTimeField(_("end"), help_text=_("The end time must be later than the start time."))
     title = models.CharField(_("title"), max_length=255)
     description = models.TextField(_("description"), null=True, blank=True)
-    livestreamUrl = models.ForeignKey(LivestreamUrl, default=1, null=True)
+    livestreamUrl = models.ForeignKey(LivestreamUrl, null=True)
     creator = models.ForeignKey(
         django_settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -525,7 +525,7 @@ class Occurrence(with_metaclass(ModelBase, *get_model_bases())):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("event"))
     title = models.CharField(_("title"), max_length=255, blank=True, null=True)
     description = models.TextField(_("description"), blank=True, null=True)
-    livestreamUrl = models.ForeignKey(LivestreamUrl, default=1, null=True)
+    livestreamUrl = models.ForeignKey(LivestreamUrl, blank=True, null=True)
     start = models.DateTimeField(_("start"))
     end = models.DateTimeField(_("end"))
     cancelled = models.BooleanField(_("cancelled"), default=False)
