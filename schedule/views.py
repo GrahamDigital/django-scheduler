@@ -218,8 +218,10 @@ class EditEventView(EventEditMixin, UpdateView):
     template_name = 'schedule/create_event.html'
 
     def get_initial(self):
+        calendar =  Calendar.objects.get(slug=self.kwargs['calendar_slug'])
         initial_data = {
-            "calendar": Calendar.objects.get(slug=self.kwargs['calendar_slug']),
+            "calendar": calendar,
+            "station": calendar.station,
             "event_id": self.kwargs['event_id']
             }
         return initial_data
@@ -262,8 +264,10 @@ class CreateEventView(EventEditMixin, CreateView):
         if date:
             try:
                 start = datetime.datetime(**date)
+                calendar = Calendar.objects.get(slug=self.kwargs['calendar_slug'])
                 initial_data = {
-                    "calendar": Calendar.objects.get(slug=self.kwargs['calendar_slug']),
+                    "calendar": calendar,
+                    "station": calendar.station,
                     "start": start,
                     "end": start + datetime.timedelta(minutes=30),
                 }
@@ -358,14 +362,9 @@ def get_boolean_from_request(request, key, default=False):
 
 def live_now(request):
     calendar_slug = request.GET.get('calendar_slug')
-    # Get current local time
-    calendar = Calendar.objects.get(slug=calendar_slug)
-    tz = pytz.timezone(calendar.timezone.name)
     utc_now = datetime.datetime.utcnow()
-    current_local = utc_now + tz.utcoffset(utc_now)
-    start = current_local.replace(tzinfo=pytz.UTC)
-    dt = datetime.timedelta(seconds=1)
-    end = start + dt
+    start = utc_now.replace(tzinfo=pytz.UTC)
+    end = start + datetime.timedelta(seconds=1)
     try:
         response_data = _api_occurrences(start, end, calendar_slug)
     except (ValueError, Calendar.DoesNotExist) as e:

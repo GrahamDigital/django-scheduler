@@ -29,7 +29,7 @@
     <div class="col-md-3">
       <div class="row row-centered">
         <a href="{% url "day_calendar" calendar.slug %}{% querystring_for_date day.start 3 %}">
-          {{day.start|date:"l, d"}}
+          {{day.start.date|date:"l, d"}}
         </a>
       </div>
       {% if forloop.first %}

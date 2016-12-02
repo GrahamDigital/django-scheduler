@@ -12,7 +12,7 @@ from django.utils.six.moves.urllib.parse import urlencode
 
 from schedule.conf.settings import CHECK_EVENT_PERM_FUNC, CHECK_CALENDAR_PERM_FUNC, SCHEDULER_PREVNEXT_LIMIT_SECONDS
 from schedule.models import Calendar
-from schedule.periods import weekday_names, weekday_abbrs
+from schedule.periods import weekday_names, weekday_abbrs, Period
 
 register = template.Library()
 
@@ -60,9 +60,19 @@ def daily_table(context, day, start=0, end=24, increment=30):
         addable = CHECK_CALENDAR_PERM_FUNC(context['calendar'], user)
     context['addable'] = addable
 
-    day_part = day.get_time_slot(day.start + datetime.timedelta(hours=start), day.start + datetime.timedelta(hours=end))
+    tz = timezone.get_current_timezone()
+    day_start_local = day.start.astimezone(tz)
+    tzoffset = day_start_local.utcoffset() # get the utcoffset timedelta
+    adjusted_day_start = day.start - tzoffset
+    day_part = Period(day.events, adjusted_day_start + datetime.timedelta(hours=start),
+        adjusted_day_start + datetime.timedelta(hours=end))
+
+    # day_part = day.get_time_slot(day.start + datetime.timedelta(hours=start), day.start + datetime.timedelta(hours=end))
+
     # get slots to display on the left
     slots = _cook_slots(day_part, increment)
+
+
     context['slots'] = slots
     return context
 
@@ -83,7 +93,7 @@ def options(context, occurrence):
     })
     context['view_occurrence'] = occurrence.get_absolute_url()
     user = context['request'].user
-    if CHECK_EVENT_PERM_FUNC(occurrence.event, user) and CHECK_CALENDAR_PERM_FUNC(occurrence.event.calendar, user):
+    if CHECK_EVENT_PERM_FUNC(occurrence.event, user):# and CHECK_CALENDAR_PERM_FUNC(occurrence.event.calendar, user):
         context['edit_occurrence'] = occurrence.get_edit_url()
         context['cancel_occurrence'] = occurrence.get_cancel_url()
         context['delete_event'] = reverse('delete_event', args=(occurrence.event.id,))
@@ -94,7 +104,7 @@ def options(context, occurrence):
 
 
 @register.inclusion_tag("schedule/_create_event_options.html", takes_context=True)
-def create_event_url(context, calendar, slot):
+def create_event_url(context, calendar, slot_start):
     context.update({
         'calendar': calendar,
         'MEDIA_URL': getattr(settings, "MEDIA_URL"),
@@ -102,9 +112,16 @@ def create_event_url(context, calendar, slot):
     lookup_context = {
         'calendar_slug': calendar.slug,
     }
+
+    # force local time and let django auto-convert to utc on form submit
+    tz = timezone.get_current_timezone()
+    slot_start_local = slot_start.astimezone(tz)
+    tzoffset = slot_start_local.utcoffset()
+    adjusted_slot_start = slot_start + tzoffset
+
     context['create_event_url'] = "%s%s" % (
         reverse("calendar_create_event", kwargs=lookup_context),
-        querystring_for_date(slot))
+        querystring_for_date(adjusted_slot_start))
     return context
 
 

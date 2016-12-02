@@ -74,9 +74,9 @@ class EventAdmin(admin.ModelAdmin):
         if db_field.name == "calendar" and not request.user.is_superuser:
             kwargs["queryset"] = Calendar.objects.filter(station__in=request.user.stations.all())
             return db_field.formfield(**kwargs)
-        # if db_field.name == "livestreamUrl" and not request.user.is_superuser:
-        #     kwargs["queryset"] = LivestreamUrl.objects.filter(station__in=request.user.stations.all())
-        #     return db_field.formfield(**kwargs)
+        if db_field.name == "livestreamUrl" and not request.user.is_superuser:
+            kwargs["queryset"] = LivestreamUrl.objects.filter(station__in=request.user.stations.all())
+            return db_field.formfield(**kwargs)
         return super(EventAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 

@@ -1,6 +1,6 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from schedule.models import Event, Occurrence, Calendar, Rule
+from schedule.models import Event, Occurrence, Calendar, Rule, LivestreamUrl
 from schedule.periods import Period
 import datetime
 
@@ -21,7 +21,9 @@ class OccurrenceForm(SpanForm):
     def __init__(self, *args, **kwargs):
         super(OccurrenceForm, self).__init__(*args, **kwargs)
         event = kwargs['instance'].event
+        station = event.calendar.station
         self.fields['event'].queryset = Event.objects.filter(pk=event.pk) # restrict event to the parent event for the occurrence
+        self.fields['livestreamUrl'].queryset = LivestreamUrl.objects.filter(station=station)
 
     def clean(self):
         super(OccurrenceForm, self).clean() # clean the form data
@@ -48,7 +50,9 @@ class EventForm(SpanForm):
     def __init__(self, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
         calendar = kwargs['initial']['calendar']
+        station = kwargs['initial']['station']
         self.fields['calendar'].queryset = Calendar.objects.filter(slug=calendar.slug) # restrict calendar choice to only the calendar passed through the url
+        self.fields['livestreamUrl'].queryset = LivestreamUrl.objects.filter(station=station)
 
     end_recurring_period = forms.DateTimeField(label=_(u"End recurring period"),
                                                help_text=_(u"e.g. '2018-1-1'. This date is ignored for one time only events."),
