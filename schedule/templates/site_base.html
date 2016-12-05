@@ -1,6 +1,6 @@
 {% load i18n static %}
 {% load tz %}
-
+{% get_current_timezone as TIME_ZONE %}
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}" xml:lang="{{ LANGUAGE_CODE }}" lang="{{ LANGUAGE_CODE }}">
     <head>
@@ -17,6 +17,7 @@
     <body>
     <!-- <h3 id="demo">{% trans "Uplynk EPG" %}</h3> -->
     <h3 id ="HomeLink"> <a href="{% url "calendar_list" %}"> GMG Electronic Program Guide </a> </h3>
+    <h5 id="TimeZoneInfo"> Rendering/inputting times as {{ TIME_ZONE }} </h5>
 
     <p style="clear:both">
 
