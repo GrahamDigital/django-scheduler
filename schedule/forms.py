@@ -75,6 +75,7 @@ def time_conflicts(start1,end1,start2,end2):
     checks to see if there is any overlap in their runtimes.
     Returns False if there is no conflict.
     """
+
     if start2 <= start1 < end2: # if start in range (allow start1 = end2)
         return True
     if start2 < end1 <= end2: # if end in range (allow end1 = start2)
@@ -89,6 +90,9 @@ def check_occ_conflicts(occ, events):
     Checks to see if an occurrence (occ) conflicts with any occurrence of an
     event queryset (events).
     """
+    print "Checking conflicts for occurrence %s" %(occ.start.isoformat(),)
+
+
     period =Period(events, occ.start, occ.end)
     for pocc in period.occurrences:
         if not pocc.cancelled:
@@ -98,8 +102,8 @@ def check_occ_conflicts(occ, events):
             Conflicting occurrence runs %(starttime)s -- %(endtime)s. """%{
             'title': pocc.title,
             'pk': pocc.event.pk,
-            'starttime': pocc.start.strftime('%a %Y-%m-%d %H:%M'),
-            'endtime': pocc.end.strftime('%a %Y-%m-%d %H:%M')})
+            'starttime': pocc.start.isoformat(),
+            'endtime': pocc.end.isoformat()})
 
 def check_event_conflicts(form):
     calendar = form.cleaned_data.get('calendar')
@@ -120,6 +124,8 @@ def check_event_conflicts(form):
     if primKey: #exclude self if instance exists
         events = events.exclude(pk=primKey)
 
+    print "Making temp event: %s -- %s" %(start.isoformat(), end.isoformat())
+    print "Event timezone = %s" %(start.tzname())
     event = Event(calendar=calendar, start=start, end=end, rule=rule, end_recurring_period=end_recurring_period, title='temp_placeholder')
     if not rule :
         occ =event.get_occurrence(event.start)

@@ -4,6 +4,7 @@ from django.utils.six import with_metaclass
 from django.conf import settings as django_settings
 from dateutil import rrule
 import datetime
+import pytz
 
 from django.contrib.contenttypes import fields
 from django.db import models
@@ -208,6 +209,9 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
             if start.tzinfo:
                 tzinfo = start.tzinfo
 
+            cal_tz = self.calendar.timezone
+            e_dst = cal_tz.dst(self.start.replace(tzinfo=None)) # the dst offset from the event start
+
             occurrences = []
             if self.end_recurring_period and self.end_recurring_period < end.replace(tzinfo=self.end_recurring_period.tzinfo):
                 end = self.end_recurring_period
@@ -223,9 +227,21 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
                 o_starts.append(rule.between(start-difference, end))
             for occ in o_starts:
                 for o_start in occ:
-                    o_start = tzinfo.localize(o_start)
-                    if use_naive:
-                        o_start = timezone.make_naive(o_start, tzinfo)
+                    """
+                    need an adjustment for generating occurrences across time zones.
+                    e.g., if the user inputs 2017-3-10 12:00 Eastern, then event start = 17:00 UTC
+                    however, after daylight savings time begins on 2017-3-13,
+                    12:00 Eastern corresponds to 16:00 UTC, so occurrence start should be 16:00 UTC
+                    Since the occurrence generator references the event start,
+                    the dst adjustment should be calculated
+                    """
+                    o_dst = cal_tz.dst(o_start) # the dst offset of the occurrence
+                    dst_adjust = o_dst - e_dst # the adjustment that should be applied to the occurrence start
+                    o_start = o_start + dst_adjust
+
+                    if not use_naive:
+                        o_start = tzinfo.localize(o_start) # impose timezone on naive instance
+
                     o_end = o_start + difference
                     occurrence = self._create_occurrence(o_start, o_end)
                     if occurrence not in occurrences:

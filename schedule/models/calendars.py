@@ -15,9 +15,17 @@ from schedule.utils import EventListManager, get_model_bases
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
+from timezone_field import TimeZoneField
+
 from stations.models import Station
 
 from schedule.conf.settings import USE_FULLCALENDAR
+
+TZ_CHOICES = (
+    ('America/Detroit', 'Eastern'),
+    ('America/Chicago', 'Central'),
+)
+
 
 class CalendarManager(models.Manager):
     """
@@ -145,6 +153,8 @@ class Calendar(with_metaclass(ModelBase, *get_model_bases())):
     name = models.CharField(_("name"), max_length=200)
     station = models.ForeignKey(Station, help_text=_("The station which owns this calendar"))
     slug = models.SlugField(_("slug"), max_length=200)
+    timezone = TimeZoneField(default="America/Detroit", choices=TZ_CHOICES,
+        help_text="used only for generating recurring event occurrences")
     objects = CalendarManager()
 
     class Meta(object):

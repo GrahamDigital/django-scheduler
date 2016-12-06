@@ -5,13 +5,13 @@ from schedule.forms import EventAdminForm
 
 
 class CalendarAdminOptions(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'station')
+    list_display = ('name', 'slug', 'station', 'timezone')
     prepopulated_fields = {"slug": ("name",)}
     search_fields = ['name', 'station__name']
     fieldsets = (
         (None, {
             'fields': [
-                ('name', 'slug','station',),
+                ('name', 'slug','station', 'timezone'),
             ]
         }),
     )
