@@ -67,12 +67,8 @@ def daily_table(context, day, start=0, end=24, increment=30):
     day_part = Period(day.events, adjusted_day_start + datetime.timedelta(hours=start),
         adjusted_day_start + datetime.timedelta(hours=end))
 
-    # day_part = day.get_time_slot(day.start + datetime.timedelta(hours=start), day.start + datetime.timedelta(hours=end))
-
     # get slots to display on the left
     slots = _cook_slots(day_part, increment)
-
-
     context['slots'] = slots
     return context
 

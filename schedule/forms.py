@@ -34,6 +34,15 @@ class OccurrenceForm(SpanForm):
         model = Occurrence
         exclude = ('original_start', 'original_end', )
 
+class OccurrenceAdminForm(forms.ModelForm):
+    def clean(self):
+        super(OccurrenceAdminForm, self).clean()
+        check_occurrence_conflicts(self)
+        return self.cleaned_data
+
+        class Meta:
+            model = Occurrence
+            exclude = []
 
 class EventAdminForm(forms.ModelForm):
     def clean(self):

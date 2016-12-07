@@ -175,6 +175,25 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
             end = start + (self.end - self.start)
         return Occurrence(event=self, start=start, end=end, original_start=start, original_end=end)
 
+    def _get_dst_adjust(self, date):
+        """
+        need an adjustment for generating occurrences across time zones.
+        e.g., if the user inputs 2017-3-10 12:00 Eastern, then event start = 17:00 UTC
+        however, after daylight savings time begins on 2017-3-13,
+        12:00 Eastern corresponds to 16:00 UTC, so occurrence start should be 16:00 UTC
+        Since the occurrence generator references the event start,
+        the dst adjustment should be calculated and added to the occurrence start time
+        """
+        cal_tz = self.calendar.timezone
+        e_dst = self.start.astimezone(cal_tz).dst() # the dst offset from the event start
+
+        if timezone.is_naive(date):
+            date = timezone.make_aware(date, timezone.utc)
+        d_dst = date.astimezone(cal_tz).dst()
+
+        return e_dst - d_dst # the adjustment that should be applied to the occurrence start
+
+
     def get_occurrence(self, date):
         use_naive = timezone.is_naive(date)
         tzinfo = timezone.utc
@@ -182,15 +201,17 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
             date = timezone.make_aware(date, timezone.utc)
         if date.tzinfo:
             tzinfo = date.tzinfo
+
+        dst_adjust = self._get_dst_adjust(date)
         rule = self.get_rrule_object(tzinfo)
         if rule:
             next_occurrence = rule.after(tzinfo.normalize(date).replace(tzinfo=None), inc=True)
-            next_occurrence = tzinfo.localize(next_occurrence)
+            next_occurrence = tzinfo.localize(next_occurrence) + dst_adjust
         else:
             next_occurrence = self.start
         if next_occurrence == date:
             try:
-                return Occurrence.objects.get(event=self, original_start=date)
+                return Occurrence.objects.get(event=self, original_start=date+dst_adjust)
             except Occurrence.DoesNotExist:
                 if use_naive:
                     next_occurrence = timezone.make_naive(next_occurrence, tzinfo)
@@ -209,15 +230,16 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
             if start.tzinfo:
                 tzinfo = start.tzinfo
 
-            cal_tz = self.calendar.timezone
-            e_dst = cal_tz.dst(self.start.replace(tzinfo=None)) # the dst offset from the event start
-
             occurrences = []
             if self.end_recurring_period and self.end_recurring_period < end.replace(tzinfo=self.end_recurring_period.tzinfo):
                 end = self.end_recurring_period
 
+            start_dst_adjust = self._get_dst_adjust(start)
+            end_dst_adjust = self._get_dst_adjust(end)
+
             rule = self.get_rrule_object(tzinfo)
-            start = start.replace(tzinfo=None)
+            start = start.replace(tzinfo=None) - start_dst_adjust
+            end = end - end_dst_adjust
             if timezone.is_aware(end):
                 end = tzinfo.normalize(end).replace(tzinfo=None)
             o_starts = []
@@ -227,16 +249,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
                 o_starts.append(rule.between(start-difference, end))
             for occ in o_starts:
                 for o_start in occ:
-                    """
-                    need an adjustment for generating occurrences across time zones.
-                    e.g., if the user inputs 2017-3-10 12:00 Eastern, then event start = 17:00 UTC
-                    however, after daylight savings time begins on 2017-3-13,
-                    12:00 Eastern corresponds to 16:00 UTC, so occurrence start should be 16:00 UTC
-                    Since the occurrence generator references the event start,
-                    the dst adjustment should be calculated
-                    """
-                    o_dst = cal_tz.dst(o_start) # the dst offset of the occurrence
-                    dst_adjust = o_dst - e_dst # the adjustment that should be applied to the occurrence start
+                    dst_adjust = self._get_dst_adjust(o_start)
                     o_start = o_start + dst_adjust
 
                     if not use_naive:
@@ -275,7 +288,8 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
         difference = self.end - self.start
         loop_counter = 0
         for o_start in date_iter:
-            o_start = tzinfo.localize(o_start)
+            dst_adjust = self._get_dst_adjust(o_start)
+            o_start = tzinfo.localize(o_start) + dst_adjust
             if self.end_recurring_period and self.end_recurring_period and o_start > self.end_recurring_period:
                 break
             o_end = o_start + difference
