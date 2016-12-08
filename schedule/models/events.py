@@ -175,46 +175,23 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
             end = start + (self.end - self.start)
         return Occurrence(event=self, start=start, end=end, original_start=start, original_end=end)
 
-    def _get_dst_adjust(self, date):
-        """
-        need an adjustment for generating occurrences across time zones.
-        e.g., if the user inputs 2017-3-10 12:00 Eastern, then event start = 17:00 UTC
-        however, after daylight savings time begins on 2017-3-13,
-        12:00 Eastern corresponds to 16:00 UTC, so occurrence start should be 16:00 UTC
-        Since the occurrence generator references the event start,
-        the dst adjustment should be calculated and added to the occurrence start time
-        """
-        cal_tz = self.calendar.timezone
-        e_dst = self.start.astimezone(cal_tz).dst() # the dst offset from the event start
-
-        if timezone.is_naive(date):
-            date = timezone.make_aware(date, timezone.utc)
-        d_dst = date.astimezone(cal_tz).dst()
-
-        return e_dst - d_dst # the adjustment that should be applied to the occurrence start
-
-
     def get_occurrence(self, date):
-        use_naive = timezone.is_naive(date)
-        tzinfo = timezone.utc
-        if timezone.is_naive(date):
-            date = timezone.make_aware(date, timezone.utc)
-        if date.tzinfo:
-            tzinfo = date.tzinfo
 
-        dst_adjust = self._get_dst_adjust(date)
+        tzinfo = self.calendar.timezone
+
+        if timezone.is_naive(date):
+            date = tzinfo.localize(date)
+
         rule = self.get_rrule_object(tzinfo)
         if rule:
             next_occurrence = rule.after(tzinfo.normalize(date).replace(tzinfo=None), inc=True)
-            next_occurrence = tzinfo.localize(next_occurrence) + dst_adjust
+            next_occurrence = pytz.utc.normalize(tzinfo.localize(next_occurrence))
         else:
             next_occurrence = self.start
-        if next_occurrence == date:
+        if next_occurrence == pytz.utc.normalize(date):
             try:
-                return Occurrence.objects.get(event=self, original_start=date+dst_adjust)
+                return Occurrence.objects.get(event=self, original_start=pytz.utc.normalize(date))
             except Occurrence.DoesNotExist:
-                if use_naive:
-                    next_occurrence = timezone.make_naive(next_occurrence, tzinfo)
                 return self._create_occurrence(next_occurrence)
 
     def _get_occurrence_list(self, start, end):
@@ -225,23 +202,19 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
         if self.rule is not None:
             use_naive = timezone.is_naive(start)
 
-            # Use the timezone from the start date
-            tzinfo = timezone.utc
+            # convert start, end to calendar's timezone and then make naive
+            tzinfo=self.calendar.timezone
             if start.tzinfo:
-                tzinfo = start.tzinfo
+                start = tzinfo.normalize(start).replace(tzinfo=None)
+            if end.tzinfo:
+                end = tzinfo.normalize(end).replace(tzinfo=None)
 
             occurrences = []
             if self.end_recurring_period and self.end_recurring_period < end.replace(tzinfo=self.end_recurring_period.tzinfo):
                 end = self.end_recurring_period
 
-            start_dst_adjust = self._get_dst_adjust(start)
-            end_dst_adjust = self._get_dst_adjust(end)
-
             rule = self.get_rrule_object(tzinfo)
-            start = start.replace(tzinfo=None) - start_dst_adjust
-            end = end - end_dst_adjust
-            if timezone.is_aware(end):
-                end = tzinfo.normalize(end).replace(tzinfo=None)
+
             o_starts = []
             o_starts.append(rule.between(start, end)) # occurrences which start within (start,end)
             o_starts.append(rule.between(start - difference, end - difference)) # occurrences which end within (start,end)
@@ -249,11 +222,10 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
                 o_starts.append(rule.between(start-difference, end))
             for occ in o_starts:
                 for o_start in occ:
-                    dst_adjust = self._get_dst_adjust(o_start)
-                    o_start = o_start + dst_adjust
 
                     if not use_naive:
-                        o_start = tzinfo.localize(o_start) # impose timezone on naive instance
+                        # Localize to calendar timezone, then normalize to utc
+                        o_start = pytz.utc.normalize(tzinfo.localize(o_start))
 
                     o_end = o_start + difference
                     occurrence = self._create_occurrence(o_start, o_end)
