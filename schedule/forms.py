@@ -1,5 +1,6 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 from schedule.models import Event, Occurrence, Calendar, Rule, LivestreamUrl
 from schedule.periods import Period
 import datetime
@@ -99,20 +100,20 @@ def check_occ_conflicts(occ, events):
     Checks to see if an occurrence (occ) conflicts with any occurrence of an
     event queryset (events).
     """
-    print "Checking conflicts for occurrence %s" %(occ.start.isoformat(),)
 
-
-    period =Period(events, occ.start, occ.end)
+    period = Period(events, occ.start, occ.end)
     for pocc in period.occurrences:
         if not pocc.cancelled:
             if time_conflicts(occ.start, occ.end, pocc.start, pocc.end):
+                tz = pocc.event.calendar.timezone
+                fmt = '%Y-%m-%d %H:%M%Z'
                 raise forms.ValidationError(
             """ Conflicts with an Occurrence of Event '%(title)s' (id = %(pk)s)!
             Conflicting occurrence runs %(starttime)s -- %(endtime)s. """%{
             'title': pocc.title,
             'pk': pocc.event.pk,
-            'starttime': pocc.start.isoformat(),
-            'endtime': pocc.end.isoformat()})
+            'starttime': tz.normalize(pocc.start).strftime(fmt),
+            'endtime': tz.normalize(pocc.start).strftime(fmt)})
 
 def check_event_conflicts(form):
     calendar = form.cleaned_data.get('calendar')
@@ -133,8 +134,6 @@ def check_event_conflicts(form):
     if primKey: #exclude self if instance exists
         events = events.exclude(pk=primKey)
 
-    print "Making temp event: %s -- %s" %(start.isoformat(), end.isoformat())
-    print "Event timezone = %s" %(start.tzname())
     event = Event(calendar=calendar, start=start, end=end, rule=rule, end_recurring_period=end_recurring_period, title='temp_placeholder')
     if not rule :
         occ =event.get_occurrence(event.start)

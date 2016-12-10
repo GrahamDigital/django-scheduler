@@ -76,6 +76,7 @@ class CalendarView(CalendarMixin, DetailView):
         calendar_slug = self.kwargs['calendar_slug']
         calendar = Calendar.objects.get(slug=calendar_slug)
         context['calendar'] = calendar
+        print "Current timezone : %s" %timezone.get_current_timezone().zone
         context['events_count'] = len(calendar.events.all())
         return context
 
@@ -205,8 +206,6 @@ class EventView(EventMixin, DetailView):
         context['can_edit'] = CHECK_EVENT_PERM_FUNC(event, self.request.user)
         return context
 
-
-
 class EditEventView(EventEditMixin, UpdateView):
     # def get_form_class(self):
     #     event = self.get_object()
@@ -219,6 +218,7 @@ class EditEventView(EventEditMixin, UpdateView):
 
     def get_initial(self):
         calendar =  Calendar.objects.get(slug=self.kwargs['calendar_slug'])
+        timezone.activate(calendar.timezone)
         initial_data = {
             "calendar": calendar,
             "station": calendar.station,

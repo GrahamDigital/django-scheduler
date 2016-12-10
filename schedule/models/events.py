@@ -57,7 +57,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
     This model stores meta data for a date.  You can relate this data to many
     other models.
     '''
-    start = models.DateTimeField(_("start"))
+    start = models.DateTimeField(_("start"), help_text="e.g. 2017-1-1 13:30")
     end = models.DateTimeField(_("end"), help_text=_("The end time must be later than the start time."))
     title = models.CharField(_("title"), max_length=255)
     description = models.TextField(_("description"), null=True, blank=True)

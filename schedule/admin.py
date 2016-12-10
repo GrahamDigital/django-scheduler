@@ -1,4 +1,10 @@
+import pytz
+import datetime
+from urllib import unquote
+
 from django.contrib import admin
+from django.utils import timezone
+
 
 from schedule.models import Calendar, Event, Occurrence, CalendarRelation, Rule, LivestreamUrl
 from schedule.forms import EventAdminForm, OccurrenceAdminForm
@@ -44,9 +50,11 @@ class CalendarRelationAdmin(admin.ModelAdmin):
 
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('title', 'start', 'end', 'calendar', 'rule', 'end_recurring_period', 'livestreamUrl', 'pk')
+    list_display = ('title', 'start_in_timezone', 'event_timezone',
+        'end_in_timezone', 'calendar', 'rule', 'end_recurring_period',
+        'updated_on', 'pk' )
     list_filter = ('calendar__station','calendar', 'start', 'rule', 'end_recurring_period', 'livestreamUrl')
-    ordering = ('-start',)
+    ordering = ('-updated_on',)
     date_hierarchy = 'start'
     search_fields = ('title', 'description')
     fieldsets = (
@@ -62,6 +70,37 @@ class EventAdmin(admin.ModelAdmin):
         }),
     )
     form = EventAdminForm
+
+    def event_timezone(self, event):
+        tz = event.calendar.timezone
+        return datetime.datetime.now(tz).tzname()
+    event_timezone.short_description = 'TZ'
+    def start_in_timezone(self, event):
+        """Display start time on the changelist in its own timezone"""
+        dt = event.start.astimezone(event.calendar.timezone)
+        return dt.strftime('%Y-%m-%d %H:%M')
+    start_in_timezone.short_description = 'Start'
+    def end_in_timezone(self, event):
+        dt = event.start.astimezone(event.calendar.timezone)
+        return dt.strftime('%Y-%m-%d %H:%M')
+    end_in_timezone.short_description = 'End'
+
+    """ EventAdmin Overrides """
+    # Override add view to set the timezone before it is proccessed
+    def add_view(self, request, form_url='', extra_context=None):
+        if request.method == 'POST':
+            calendar = Calendar.objects.get(pk=int(request.POST.get('calendar')))
+            timezone.activate(calendar.timezone)
+        return super(EventAdmin, self).add_view(request, form_url, extra_context)
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        if request.method == 'POST':
+            calendar = Calendar.objects.get(pk=int(request.POST.get('calendar')))
+            timezone.activate(calendar.timezone)
+        else:
+            obj = self.get_object(request, unquote(object_id))
+            timezone.activate(obj.calendar.timezone)
+        return super(EventAdmin, self).change_view(request, object_id, form_url, extra_context)
 
      # Override queries to be restricted to user station affiliations
     def get_queryset(self, request):
