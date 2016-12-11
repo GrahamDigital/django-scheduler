@@ -53,7 +53,7 @@ class EventAdmin(admin.ModelAdmin):
     list_display = ('title', 'start_in_timezone', 'event_timezone',
         'end_in_timezone', 'calendar', 'rule', 'end_recurring_period',
         'updated_on', 'pk' )
-    list_filter = ('calendar__station','calendar', 'start', 'rule', 'end_recurring_period', 'livestreamUrl')
+    list_filter = ('calendar__station','calendar', 'start', 'rule', 'end_recurring_period')
     ordering = ('-updated_on',)
     date_hierarchy = 'start'
     search_fields = ('title', 'description')
@@ -93,6 +93,7 @@ class EventAdmin(admin.ModelAdmin):
             timezone.activate(calendar.timezone)
         return super(EventAdmin, self).add_view(request, form_url, extra_context)
 
+    # Override the change view to  set the timezone before processing
     def change_view(self, request, object_id, form_url='', extra_context=None):
         if request.method == 'POST':
             calendar = Calendar.objects.get(pk=int(request.POST.get('calendar')))
@@ -134,7 +135,26 @@ class OccurrenceAdmin(admin.ModelAdmin):
         }),
     )
     form = OccurrenceAdminForm
-     # Override queries to be restricted to user station affiliations
+
+    """ OccurrenceAdmin Overrides"""
+    # Override add view to set the timezone before it is proccessed
+    def add_view(self, request, form_url='', extra_context=None):
+        if request.method == 'POST':
+            event = Event.objects.get(pk=int(request.POST.get('event')))
+            timezone.activate(event.calendar.timezone)
+        return super(OccurrenceAdmin, self).add_view(request, form_url, extra_context)
+
+    # Override the change view to  set the timezone before processing
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        if request.method == 'POST':
+            event = Event.objects.get(pk=int(request.POST.get('event')))
+            timezone.activate(event.calendar.timezone)
+        else:
+            obj = self.get_object(request, unquote(object_id))
+            timezone.activate(obj.calendar.timezone)
+        return super(OccurrenceAdmin, self).change_view(request, object_id, form_url, extra_context)
+
+    # Override queries to be restricted to user station affiliations
     def get_queryset(self, request):
         qs = super(OccurrenceAdmin, self).get_queryset(request)
         if not request.user.is_superuser:
