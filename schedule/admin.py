@@ -81,7 +81,7 @@ class EventAdmin(admin.ModelAdmin):
         return dt.strftime('%Y-%m-%d %H:%M')
     start_in_timezone.short_description = 'Start'
     def end_in_timezone(self, event):
-        dt = event.start.astimezone(event.calendar.timezone)
+        dt = event.end.astimezone(event.calendar.timezone)
         return dt.strftime('%Y-%m-%d %H:%M')
     end_in_timezone.short_description = 'End'
 
@@ -120,7 +120,7 @@ class EventAdmin(admin.ModelAdmin):
         return super(EventAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 class OccurrenceAdmin(admin.ModelAdmin):
-    list_display = ('title', 'start', 'end', 'cancelled','event', 'updated_on')
+    list_display = ('title', 'start_in_timezone', 'event_timezone', 'end_in_timezone', 'cancelled','event', 'updated_on')
     list_filter = ('event__calendar__station', 'event__calendar', 'cancelled', 'start')
     fieldsets =(
         (None, {
@@ -135,6 +135,19 @@ class OccurrenceAdmin(admin.ModelAdmin):
         }),
     )
     form = OccurrenceAdminForm
+    def event_timezone(self, occurrence):
+        tz = occurrence.event.calendar.timezone
+        return datetime.datetime.now(tz).tzname()
+    event_timezone.short_description = 'TZ'
+    def start_in_timezone(self, occurrence):
+        """Display start time on the changelist in its own timezone"""
+        dt = occurrence.start.astimezone(occurrence.event.calendar.timezone)
+        return dt.strftime('%Y-%m-%d %H:%M')
+    start_in_timezone.short_description = 'Start'
+    def end_in_timezone(self, occurrence):
+        dt = occurrence.end.astimezone(occurrence.event.calendar.timezone)
+        return dt.strftime('%Y-%m-%d %H:%M')
+    end_in_timezone.short_description = 'End'
 
     """ OccurrenceAdmin Overrides"""
     # Override add view to set the timezone before it is proccessed
