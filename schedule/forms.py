@@ -101,6 +101,9 @@ def check_occ_conflicts(occ, events):
     Checks to see if an occurrence (occ) conflicts with any occurrence of an
     event queryset (events).
     """
+    # Don't conflict check on a cancelled occurrence
+    if occ.cancelled:
+        return
 
     period = Period(events, occ.start, occ.end)
     for pocc in period.occurrences:

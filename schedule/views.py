@@ -76,7 +76,6 @@ class CalendarView(CalendarMixin, DetailView):
         calendar_slug = self.kwargs['calendar_slug']
         calendar = Calendar.objects.get(slug=calendar_slug)
         context['calendar'] = calendar
-        print "Current timezone : %s" %timezone.get_current_timezone().zone
         context['events_count'] = len(calendar.events.all())
         return context
 

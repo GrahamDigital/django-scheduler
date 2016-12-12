@@ -211,7 +211,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
             if self.end_recurring_period:
                 erp = tzinfo.normalize(self.end_recurring_period)
                 end = erp if erp < end else end
-            end = end.replace(tzinfo=None)    
+            end = end.replace(tzinfo=None)
 
             if self.end_recurring_period and self.end_recurring_period < end.replace(tzinfo=self.end_recurring_period.tzinfo):
                 end = self.end_recurring_period
