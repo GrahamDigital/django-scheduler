@@ -206,15 +206,19 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
             tzinfo=self.calendar.timezone
             if start.tzinfo:
                 start = tzinfo.normalize(start).replace(tzinfo=None)
-            if end.tzinfo:
-                end = tzinfo.normalize(end).replace(tzinfo=None)
 
-            occurrences = []
+            end = tzinfo.normalize(end) if end.tzinfo else tzinfo.localize(end)
+            if self.end_recurring_period:
+                erp = tzinfo.normalize(self.end_recurring_period)
+                end = erp if erp < end else end
+            end = end.replace(tzinfo=None)    
+
             if self.end_recurring_period and self.end_recurring_period < end.replace(tzinfo=self.end_recurring_period.tzinfo):
                 end = self.end_recurring_period
 
             rule = self.get_rrule_object(tzinfo)
 
+            occurrences = []
             o_starts = []
             o_starts.append(rule.between(start, end)) # occurrences which start within (start,end)
             o_starts.append(rule.between(start - difference, end - difference)) # occurrences which end within (start,end)

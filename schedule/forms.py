@@ -4,6 +4,7 @@ from django.utils import timezone
 from schedule.models import Event, Occurrence, Calendar, Rule, LivestreamUrl
 from schedule.periods import Period
 import datetime
+import pytz
 
 
 class SpanForm(forms.ModelForm):
@@ -130,11 +131,22 @@ def check_event_conflicts(form):
     if rule and not end_recurring_period:
         raise forms.ValidationError(_(u"Recurring Events (with rules) must have a value for 'End Recurring Period'!"))
 
-    events = Event.objects.filter(calendar = calendar)
-    if primKey: #exclude self if instance exists
-        events = events.exclude(pk=primKey)
+    # Translate times to UTC
+    start = start.astimezone(pytz.utc) if start.tzinfo else pytz.utc.localize(start)
+    end = end.astimezone(pytz.utc) if end.tzinfo else pytz.utc.localize(end)
 
-    event = Event(calendar=calendar, start=start, end=end, rule=rule, end_recurring_period=end_recurring_period, title='temp_placeholder')
+    events = Event.objects.filter(calendar = calendar)
+    if primKey:
+        events = events.exclude(pk=primKey) # exclude self from conflict check
+        event = Event.objects.get(pk=primKey) # get the existing instance
+        event.start=start
+        event.end=end
+        event.end_recurring_period = end_recurring_period
+        event.rule = rule
+    else:
+        event = Event(calendar=calendar, start=start, end=end, rule=rule,
+            end_recurring_period=end_recurring_period, title='temp_placeholder')
+
     if not rule :
         occ =event.get_occurrence(event.start)
         check_occ_conflicts(occ, events)
