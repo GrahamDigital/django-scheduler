@@ -459,7 +459,7 @@ def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
                 "livestream_url": occurrence.livestreamUrl.url,
                 "rule": recur_rule,
                 "end_recurring_period": recur_period_end,
-                "creator": str(occurrence.event.creator),
+                "creator_id": str(occurrence.event.creator_id),
                 "calendar": occurrence.event.calendar.slug,
                 "cancelled": occurrence.cancelled,
             })
