@@ -23,13 +23,13 @@ class CalendarAdminOptions(admin.ModelAdmin):
     )
 
 class LivestreamUrlAdmin(admin.ModelAdmin):
-    list_display = ('name', 'url', 'station')
+    list_display = ('name', 'page_url', 'stream_url', 'station')
     list_filter = ('station',)
-    search_fields = ['name', 'url', 'station__name']
+    search_fields = ['name', 'station__name']
     fieldsets = (
         (None, {
             'fields': [
-                ('name', 'url', 'station'),
+                ('name', 'page_url', 'stream_url', 'station'),
             ]
         }),
     )
