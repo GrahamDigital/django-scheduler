@@ -250,7 +250,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
         ``max_occurences`` occurrences or has reached ``self.end_recurring_period``, whichever is smallest.
         """
 
-        tzinfo = timezone.utc
+        tzinfo = self.calendar.timezone
         if after is None:
             after = timezone.now()
         elif not timezone.is_naive(after):
@@ -264,9 +264,8 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
         difference = self.end - self.start
         loop_counter = 0
         for o_start in date_iter:
-            dst_adjust = self._get_dst_adjust(o_start)
-            o_start = tzinfo.localize(o_start) + dst_adjust
-            if self.end_recurring_period and self.end_recurring_period and o_start > self.end_recurring_period:
+            o_start = tzinfo.localize(o_start).astimezone(pytz.utc)
+            if self.end_recurring_period and o_start > self.end_recurring_period:
                 break
             o_end = o_start + difference
             if o_end > after:
