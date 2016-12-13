@@ -75,6 +75,7 @@ class CalendarView(CalendarMixin, DetailView):
         context = super(CalendarView, self).get_context_data()
         calendar_slug = self.kwargs['calendar_slug']
         calendar = Calendar.objects.get(slug=calendar_slug)
+        timezone.activate(calendar.timezone)
         context['calendar'] = calendar
         context['events_count'] = len(calendar.events.all())
         return context
@@ -95,6 +96,7 @@ class CalendarByPeriodsView(CalendarMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(CalendarByPeriodsView, self).get_context_data(**kwargs)
         calendar = self.object
+        timezone.activate(calendar.timezone)
         period_class = self.kwargs['period']
         try:
             date = coerce_date_dict(self.request.GET)
@@ -137,6 +139,7 @@ class OccurrenceEditMixin(OccurrenceEditPermissionMixin, OccurrenceMixin):
     def get_context_data(self, **kwargs):
         event, occurrence = get_occurrence(**self.kwargs)
         context = super(OccurrenceEditMixin, self).get_context_data()
+        timezone.activate(event.calendar.timezone)
         context['event'] = event
         context['occurrence'] = occurrence
         return context
@@ -160,6 +163,7 @@ class OccurrencePreview(OccurrenceMixin, ModelFormMixin, ProcessFormView):
 
     def get_context_data(self, **kwargs):
         context = super(OccurrencePreview, self).get_context_data()
+        timezone.activate(self.object.event.calendar.timezone)
         context = {
             'event': self.object.event,
             'occurrence': self.object,
@@ -202,6 +206,7 @@ class EventView(EventMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(EventView, self).get_context_data(**kwargs)
         event = Event.objects.get(pk=self.kwargs['event_id'])
+        timezone.activate(event.calendar.timezone)
         context['can_edit'] = CHECK_EVENT_PERM_FUNC(event, self.request.user)
         return context
 
@@ -264,6 +269,7 @@ class CreateEventView(EventEditMixin, CreateView):
             try:
                 start = datetime.datetime(**date)
                 calendar = Calendar.objects.get(slug=self.kwargs['calendar_slug'])
+                timezone.activate(calendar.timezone)
                 initial_data = {
                     "calendar": calendar,
                     "station": calendar.station,
@@ -319,8 +325,10 @@ def get_occurrence(event_id, occurrence_id=None, year=None, month=None,
     if(occurrence_id):
         occurrence = get_object_or_404(Occurrence, id=occurrence_id)
         event = occurrence.event
+        timezone.activate(event.calendar.timezone)
     elif(all((year, month, day, hour, minute, second))):
         event = get_object_or_404(Event, id=event_id)
+        timezone.activate(event.calendar.timezone)
         occurrence = event.get_occurrence(
             datetime.datetime(int(year), int(month), int(day), int(hour),
                               int(minute), int(second), tzinfo=tzinfo))
