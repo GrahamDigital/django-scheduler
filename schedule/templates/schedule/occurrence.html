@@ -46,7 +46,12 @@
 {% else %}
 <td>{% trans "Never. This is a 'one time only' event." %}</td>
 {% endif %}
-</tr></table>
+</tr>
+<tr>
+  <td> Livestream</td>
+  <td> {{occurrence.livestreamUrl.name}}</td>
+</tr>
+</table>
 {% if occurrence.description %}
 <h3>{% trans "Description" %}</h3>
 <p>{{occurrence.description}}</p>

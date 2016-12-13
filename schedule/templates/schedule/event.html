@@ -56,7 +56,12 @@
 <tr>
   <td> {% trans "Calendar" %} </td>
   <td> <a href="{{event.calendar.get_absolute_url}}"> {{event.calendar.name}} </a>
-</tr></table>
+</tr>
+<tr>
+  <td> Livestream</td>
+  <td> {{ event.livestreamUrl.name }}</td>
+</tr>
+</table>
 {% if event.description %}
 <h3>{% trans "Description" %}</h3>
 <p>{{event.description}}</p>

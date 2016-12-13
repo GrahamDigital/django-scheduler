@@ -5,7 +5,7 @@ from schedule.feeds import UpcomingEventsFeed
 from schedule.feeds import CalendarICalendar
 from schedule.periods import Year, Month, Week, Day
 from schedule.views import (
-    CalendarByPeriodsView, CalendarView, EventView,
+    CalendarListView, CalendarByPeriodsView, CalendarView, EventView,
     OccurrenceView, EditOccurrenceView, DeleteEventView,
     EditEventView, CreateEventView, OccurrencePreview,
     CreateOccurrenceView, CancelOccurrenceView, FullCalendarView,
@@ -14,9 +14,9 @@ from schedule.views import (
 urlpatterns = [
     # urls for Calendars
     url(r'^epg/$',
-        ListView.as_view(queryset=Calendar.objects.all(),
-                         template_name='schedule/calendar_list.html'),
+        CalendarListView.as_view(queryset=Calendar.objects.all(), template_name='schedule/calendar_list.html'),
         name="calendar_list"),
+
 
     url(r'^epg/year/(?P<calendar_slug>[-\w]+)/$',
         CalendarByPeriodsView.as_view(template_name='schedule/calendar_year.html'),

@@ -3,8 +3,11 @@
 {% block head_title %}{% trans "Available Calendars" %}{% endblock %}
 {% block body %}
 <h2>{% trans "Available Calendars" %}</h2>
+{% for station in stations %}
+<h3> {{ station.name }} </h3>
 <ul>
-{% for cal in object_list %}
+{% for cal in calendars %}
+{% if cal.station == station %}
 <li><b>{{ cal }}</b> :
   <!-- <a href="{% url "compact_calendar" cal.slug %}">{% trans "Small Month" %}</a> --
   <a href="{% url "month_calendar" cal.slug %}">{% trans "1 Month" %}</a> --
@@ -13,6 +16,8 @@
   <a href="{% url "week_calendar" cal.slug %}">{% trans "Weekly" %}</a> --
   <a href="{% url "day_calendar" cal.slug %}">{% trans "Daily" %}</a>
   <!-- <a href="{% url "upcoming_events_feed" cal.id %}">{% trans "Feed" %}</a></li><br> -->
+  {% endif %}
 {% endfor %}
 </ul>
+{% endfor %}
 {% endblock %}

@@ -12,6 +12,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.generic.base import TemplateResponseMixin
 from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
 from django.views.generic.edit import (
     UpdateView, CreateView, DeleteView, ModelFormMixin, ProcessFormView)
 from django.utils.http import is_safe_url
@@ -31,6 +32,16 @@ from schedule.utils import (
     calendar_view_permissions)
 from schedule.templatetags.scheduletags import querystring_for_date
 
+from stations.models import Station
+
+class CalendarListView(ListView):
+    template_name = 'schedule/calendar_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CalendarListView, self).get_context_data(**kwargs)
+        context['stations'] = Station.objects.all()
+        context['calendars'] = Calendar.objects.all()
+        return context
 
 class CalendarViewPermissionMixin(object):
     @classmethod
@@ -86,7 +97,13 @@ class FullCalendarView(CalendarMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(FullCalendarView, self).get_context_data()
-        context['calendar_slug'] = self.kwargs.get('calendar_slug')
+        calendar_slug = self.kwargs.get('calendar_slug')
+        context['calendar_slug'] = calendar_slug
+        try:
+            calendar = Calendar.objects.get(slug=calendar_slug)
+            timezone.activate(calendar.timezone)
+        except Calendar.DoesNotExist:
+            pass
         return context
 
 
