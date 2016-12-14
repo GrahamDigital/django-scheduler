@@ -15,7 +15,7 @@
 </div>
 
 <div class="row row-centered">
-    <h3>{{ calendar.name }}</h3>
+    <h3><a href="{% url "calendar_home" calendar.slug %}">{{ calendar.name }}</a></h3>
     {% prevnext "week_calendar" calendar period "\W\e\ek W, M Y" %}
     <div class="now">
       <a href="{% url "week_calendar" calendar.slug %}">

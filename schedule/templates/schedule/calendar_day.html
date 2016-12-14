@@ -16,7 +16,7 @@
   </a>
 </div>
 <div class="row row-centered">
-    <h1>{{ calendar.name }}</h1>
+    <h3> <a href="{% url "calendar_home" calendar.slug %}">{{ calendar.name }} </a></h3>
     {% prevnext "day_calendar" calendar period "l, F d, Y" %}
     <div class="now">
       <a class="btn btn-primary gradient" href="{% url "day_calendar" calendar.slug %}">
