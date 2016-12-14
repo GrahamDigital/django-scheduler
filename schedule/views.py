@@ -39,7 +39,10 @@ class CalendarListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(CalendarListView, self).get_context_data(**kwargs)
-        context['stations'] = Station.objects.all()
+        stations = Station.objects.all()
+        if not self.request.user.is_superuser:
+            stations = self.request.user.stations.all()
+        context['stations'] = stations
         context['calendars'] = Calendar.objects.all()
         return context
 
