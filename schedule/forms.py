@@ -117,7 +117,7 @@ def check_occ_conflicts(occ, events):
             'title': pocc.title,
             'pk': pocc.event.pk,
             'starttime': tz.normalize(pocc.start).strftime(fmt),
-            'endtime': tz.normalize(pocc.start).strftime(fmt)})
+            'endtime': tz.normalize(pocc.end).strftime(fmt)})
 
 def check_event_conflicts(form):
     calendar = form.cleaned_data.get('calendar')

@@ -128,11 +128,10 @@ class CalendarByPeriodsView(CalendarMixin, DetailView):
             except ValueError:
                 raise Http404
         else:
-            date = timezone.now()
+            date = timezone.now().astimezone(calendar.timezone)
         event_list = GET_EVENTS_FUNC(self.request, calendar)
 
-        # local_timezone = timezone.get_current_timezone()
-        period = period_class(event_list, date)#, tzinfo=local_timezone)
+        period = period_class(event_list, date=date, tzinfo=calendar.timezone)
 
         context.update({
             'date': date,

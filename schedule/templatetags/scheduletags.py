@@ -60,12 +60,8 @@ def daily_table(context, day, start=0, end=24, increment=30):
         addable = CHECK_CALENDAR_PERM_FUNC(context['calendar'], user)
     context['addable'] = addable
 
-    tz = timezone.get_current_timezone()
-    day_start_local = day.start.astimezone(tz)
-    tzoffset = day_start_local.utcoffset() # get the utcoffset timedelta
-    adjusted_day_start = day.start - tzoffset
-    day_part = Period(day.events, adjusted_day_start + datetime.timedelta(hours=start),
-        adjusted_day_start + datetime.timedelta(hours=end))
+    day_part = Period(day.events, day.start + datetime.timedelta(hours=start),
+        day.start + datetime.timedelta(hours=end))
 
     # get slots to display on the left
     slots = _cook_slots(day_part, increment)
