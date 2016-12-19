@@ -388,9 +388,13 @@ def get_boolean_from_request(request, key, default=False):
 
 def live_now(request):
     calendar_slug = request.GET.get('calendar_slug')
+    shift = request.GET.get('shift')
     utc_now = datetime.datetime.utcnow()
     start = utc_now.replace(tzinfo=pytz.UTC)
-    end = start + datetime.timedelta(seconds=1)
+    if shift:
+        start = start + datetime.timedelta(seconds=int(shift))
+    end = start + datetime.timedelta(seconds=10)
+
     try:
         response_data = _api_occurrences(start, end, calendar_slug)
     except (ValueError, Calendar.DoesNotExist) as e:
