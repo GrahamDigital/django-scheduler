@@ -494,6 +494,7 @@ def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
                 "creator_id": str(occurrence.event.creator_id),
                 "calendar": occurrence.event.calendar.slug,
                 "cancelled": occurrence.cancelled,
+                "timezone": occurrence.event.calendar.timezone.zone,
             })
     return response_data
 
