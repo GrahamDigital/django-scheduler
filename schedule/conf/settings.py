@@ -47,7 +47,12 @@ if not CHECK_CALENDAR_PERM_FUNC:
 CALENDAR_VIEW_PERM = get_config('CALENDAR_VIEW_PERM', None)
 if not CALENDAR_VIEW_PERM:
     def calendar_view_permission(ob, user):
-        return user.is_authenticated()
+        if user.is_superuser:
+            return True
+        elif ob is None or ob.station in user.stations.all():
+            return user.has_perm('schedule.change_event')
+        else:
+            return False
     CALENDAR_VIEW_PERM = calendar_view_permission
 
 
