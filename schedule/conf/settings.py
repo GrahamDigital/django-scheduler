@@ -11,7 +11,9 @@ SHOW_CANCELLED_OCCURRENCES = get_config('SHOW_CANCELLED_OCCURRENCES', False)
 CHECK_EVENT_PERM_FUNC = get_config('CHECK_EVENT_PERM_FUNC', None)
 if not CHECK_EVENT_PERM_FUNC:
     def check_event_permission(ob, user):
-        if user.is_superuser:
+        if user.is_authenticated()==False:
+            return False
+        elif user.is_superuser:
             return True
         elif ob is None or ob.calendar.station in user.stations.all() :
             return user.has_perm('schedule.change_event')
@@ -23,7 +25,9 @@ if not CHECK_EVENT_PERM_FUNC:
 CHECK_OCCURRENCE_PERM_FUNC = get_config('CHECK_OCCURRENCE_PERM_FUNC', None)
 if not CHECK_OCCURRENCE_PERM_FUNC:
     def check_occurrence_permission(ob, user):
-        if user.is_superuser:
+        if user.is_authenticated()==False:
+            return False
+        elif user.is_superuser:
             return True
         elif ob is None or ob.event.calendar.station in user.stations.all() :
             return user.has_perm('schedule.change_occurrence')
@@ -35,7 +39,9 @@ if not CHECK_OCCURRENCE_PERM_FUNC:
 CHECK_CALENDAR_PERM_FUNC = get_config('CHECK_CALENDAR_PERM_FUNC', None)
 if not CHECK_CALENDAR_PERM_FUNC:
     def check_calendar_permission(ob, user):
-        if user.is_superuser:
+        if user.is_authenticated()==False:
+            return False
+        elif user.is_superuser:
             return True
         elif ob is None or ob.station in user.stations.all() :
             return user.has_perm('schedule.change_event')
@@ -47,6 +53,8 @@ if not CHECK_CALENDAR_PERM_FUNC:
 CALENDAR_VIEW_PERM = get_config('CALENDAR_VIEW_PERM', None)
 if not CALENDAR_VIEW_PERM:
     def calendar_view_permission(ob, user):
+        if user.is_authenticated()==False:
+            return False
         if user.is_superuser:
             return True
         elif ob is None or ob.station in user.stations.all():
