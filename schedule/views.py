@@ -226,6 +226,7 @@ class EventView(EventMixin, DetailView):
         context = super(EventView, self).get_context_data(**kwargs)
         event = Event.objects.get(pk=self.kwargs['event_id'])
         timezone.activate(event.calendar.timezone)
+        context['datetime_now'] = datetime.datetime.now()
         context['can_edit'] = CHECK_EVENT_PERM_FUNC(event, self.request.user)
         return context
 

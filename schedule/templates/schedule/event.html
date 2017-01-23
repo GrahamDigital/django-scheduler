@@ -3,16 +3,16 @@
 
 {% block body %}
 <div class="navigation" align="center">
-  <a class="btn btn-primary gradient" href="{% url "day_calendar" event.calendar.slug %}{% querystring_for_date event.start 3 %}">
+  <a class="btn btn-primary gradient" href="{% url "day_calendar" event.calendar.slug %}{% querystring_for_date datetime_now 3 %}">
     {% trans "Day" %}
   </a>
-  <a class="btn btn-primary gradient" href="{% url "week_calendar" event.calendar.slug %}{% querystring_for_date event.start 3 %}">
+  <a class="btn btn-primary gradient" href="{% url "week_calendar" event.calendar.slug %}{% querystring_for_date datetime_now 3 %}">
     {% trans "Week" %}
   </a>
-  <a class="btn btn-primary gradient" href="{% url "month_calendar" event.calendar.slug %}{% querystring_for_date event.start 2 %}">
+  <a class="btn btn-primary gradient" href="{% url "month_calendar" event.calendar.slug %}{% querystring_for_date datetime_now 2 %}">
     {% trans "Month" %}
   </a>
-  <a class="btn btn-primary gradient" href="{% url "year_calendar" event.calendar.slug %}{% querystring_for_date event.start 1 %}">
+  <a class="btn btn-primary gradient" href="{% url "year_calendar" event.calendar.slug %}{% querystring_for_date datetime_now 1 %}">
     {% trans "Year" %}
   </a>
 </div>
@@ -27,11 +27,11 @@
   {% endif %}
   {% if can_edit %}
   <a href="{% url "edit_event" event.calendar.slug event.id %}">
-   {% trans "Edit" %} <span class="glyphicon glyphicon-pencil"></span>
+   {% trans "Edit Event" %} <span class="glyphicon glyphicon-pencil"></span>
   </a>
   &nbsp;
   <a href="{% url "delete_event" event.id %}">
-   {% trans "Delete" %} <span class="glyphicon glyphicon-remove"></span>
+   {% trans "Delete Event and all Occurrences" %} <span class="glyphicon glyphicon-remove"></span>
   </a>
   {% endif %}
 </div>

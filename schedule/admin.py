@@ -21,6 +21,12 @@ class CalendarAdminOptions(admin.ModelAdmin):
             ]
         }),
     )
+    # Override queries to be restricted to user station affiliations
+    def get_queryset(self, request):
+        qs = super(CalendarAdminOptions, self).get_queryset(request)
+        if not request.user.is_superuser:
+            qs = qs.filter(station__in=request.user.stations.all())
+        return qs
 
 class LivestreamUrlAdmin(admin.ModelAdmin):
     list_display = ('name', 'page_url', 'stream_url', 'station')
