@@ -71,6 +71,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases())):
         related_name='creator')
     created_on = models.DateTimeField(_("created on"), auto_now_add=True)
     updated_on = models.DateTimeField(_("updated on"), auto_now=True)
+    image = models.URLField(max_length=1000, null=True, blank=True, help_text=_("Image url to represent the event"))
     rule = models.ForeignKey(
         Rule,
         on_delete=models.CASCADE,
@@ -531,6 +532,7 @@ class Occurrence(with_metaclass(ModelBase, *get_model_bases())):
     title = models.CharField(_("title"), max_length=255, blank=True, null=True)
     description = models.TextField(_("description"), blank=True, null=True)
     livestreamUrl = models.ForeignKey(LivestreamUrl, blank=True, null=True)
+    image = models.URLField(max_length=1000, null=True, blank=True, help_text=_("Image url to represent the event"))
     start = models.DateTimeField(_("start"))
     end = models.DateTimeField(_("end"))
     cancelled = models.BooleanField(_("cancelled"), default=False)
@@ -552,6 +554,8 @@ class Occurrence(with_metaclass(ModelBase, *get_model_bases())):
             self.description = self.event.description
         if self.livestreamUrl is None and self.event_id:
             self.livestreamUrl = self.event.livestreamUrl
+        if self.image is None and self.event_id and self.event.image:
+            self.image = self.event.image
 
     def moved(self):
         return self.original_start != self.start or self.original_end != self.end

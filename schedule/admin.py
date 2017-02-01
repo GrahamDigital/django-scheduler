@@ -76,6 +76,7 @@ class EventAdmin(admin.ModelAdmin):
                 ('description',),
                 ('livestreamUrl'),
                 ('start', 'end'),
+                ('image'),
                 ('creator', 'calendar',),
                 ('rule', 'end_recurring_period'),
             ]
@@ -142,6 +143,7 @@ class OccurrenceAdmin(admin.ModelAdmin):
                 ('description'),
                 ('livestreamUrl'),
                 ('start', 'end'),
+                ('image'),
                 ('cancelled')
             ]
         }),

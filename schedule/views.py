@@ -444,18 +444,7 @@ def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
     else:
         calendars = Calendar.objects.all()
     response_data = []
-    # Algorithm to get an id for the occurrences in fullcalendar (NOT THE SAME
-    # AS IN THE DB) which are always unique.
-    # Fullcalendar thinks that all their "events" with the same "event.id" in
-    # their system are the same object, because it's not really built around
-    # the idea of events (generators)
-    # and occurrences (their events).
-    # Check the "persisted" boolean value that tells it whether to change the
-    # event, using the "event_id" or the occurrence with the specified "id".
-    # for more info https://github.com/llazzaro/django-scheduler/pull/169
-    i = 1
-    if Occurrence.objects.all().count() > 0:
-        i = Occurrence.objects.latest('id').id + 1
+
     event_list = []
     for calendar in calendars:
         # create flat list of events from each calendar
@@ -467,7 +456,9 @@ def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
         for occurrence in occurrences:
             if occurrence.cancelled and not include_cancelled:
                 continue
-            occurrence_id = i + occurrence.event.id
+            start_ts = _timestamp(occurrence.start)
+            end_ts = _timestamp(occurrence.end)
+            occurrence_id = "%d_%d" %(occurrence.event.id, start_ts)
             existed = False
 
             if occurrence.id:
@@ -481,13 +472,16 @@ def _api_occurrences(start, end, calendar_slug, include_cancelled=False):
                 if occurrence.event.end_recurring_period else None
 
             response_data.append({
-                "id": occurrence_id,
+                "id": str(occurrence_id),
                 "title": occurrence.title,
                 "start": occurrence.start.isoformat(),
                 "end": occurrence.end.isoformat(),
+                "start_ts": start_ts,
+                "end_ts": end_ts,
                 "existed": existed,
                 "event_id": occurrence.event.id,
                 "description": occurrence.description,
+                "image": occurrence.image,
                 "page_url": occurrence.livestreamUrl.page_url,
                 "stream_url": occurrence.livestreamUrl.stream_url,
                 "rule": recur_rule,
@@ -585,3 +579,10 @@ def _api_select_create(start, end, calendar_slug):
     response_data = {}
     response_data['status'] = "OK"
     return response_data
+
+def _timestamp(dt):
+    if dt.tzinfo:
+        dt = dt.astimezone(pytz.utc)
+    else:
+        dt = pytz.utc.localize(dt)
+    return int((dt - datetime.datetime(1970,1,1, tzinfo=pytz.utc)).total_seconds())
