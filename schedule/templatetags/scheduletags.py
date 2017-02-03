@@ -68,6 +68,15 @@ def daily_table(context, day, start=0, end=24, increment=30):
     context['slots'] = slots
     return context
 
+@register.inclusion_tag("schedule/_occurrence_detail.html", takes_context=True)
+def occurrence_detail(context, occurrence):
+    context.update({'occurrence': occurrence})
+    return context
+
+@register.inclusion_tag("schedule/_event_detail.html", takes_context=True)
+def event_detail(context, event):
+    context.update({'event': event})
+    return context
 
 @register.inclusion_tag("schedule/_event_title.html", takes_context=True)
 def title(context, occurrence):

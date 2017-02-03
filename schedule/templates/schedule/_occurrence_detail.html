@@ -1,0 +1,53 @@
+{% load scheduletags i18n %}
+
+<table class="table table-striped">
+  <tr>
+    <td class="left"> Occurrence Title </td>
+    <td> {{occurrence.title}} </td>
+  </tr>
+  <tr>
+      <td class="left">{% trans "Starts" %}</td>
+      <td>{% blocktrans with occurrence.start|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}</td>
+  </tr>
+  <tr>
+      <td class="left">{% trans "Ends" %}</td>
+      <td>{% blocktrans with occurrence.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</td>
+  </tr>
+  <tr>
+    <td class="left"> Event ID </td>
+    <td> <a href="{{occurrence.event.get_absolute_url}}">{{occurrence.event_id}} </a></td>
+  </tr>
+  {% if occurrence.event.rule %}
+      {% if not occurrence.id %}
+          <tr>
+            <td class="left">{% trans "Reoccurs" %}</td><td>{{occurrence.event.rule}}</td>
+          </tr>
+          {% if occurrence.event.end_recurring_period %}
+            <tr>
+              <td class="left">{% trans "Until" %}</td>
+              <td>{% blocktrans with occurrence.event.end_recurring_period|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</td>
+            </tr>
+          {% endif %}
+      {% endif %}
+  {% endif %}
+  <tr>
+    <td class="left"> Image </td>
+    <td> <a href="{{occurrence.image}}"> {{occurrence.image}} </a> </td>
+  </tr>
+  <tr>
+    <td class="left"> Livestream </td>
+    <td> <a href="/schedule/livestreamurl/{{occurrence.livestreamUrl_id}}/change">{{occurrence.livestreamUrl}} </a></td>
+  </tr>
+  <tr>
+    <td class="left"> Landing Page </td>
+    <td> <a href="{{occurrence.livestreamUrl.page_url}}">{{occurrence.livestreamUrl.page_url}}</a> </td>
+  </tr>
+  <tr>
+    <td class="left"> Description </td>
+    <td> {{occurrence.description}} </td>
+  </tr>
+  <tr>
+    <td> Cancelled </td>
+    <td> {{occurrence.cancelled}} </td>
+  </tr>
+</table>

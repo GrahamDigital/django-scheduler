@@ -64,7 +64,7 @@ class CalendarRelationAdmin(admin.ModelAdmin):
 class EventAdmin(admin.ModelAdmin):
     list_display = ('title', 'start_in_timezone', 'event_timezone',
         'end_in_timezone', 'calendar', 'rule', 'end_recurring_period',
-        'updated_on', 'pk' )
+        'updated_on', 'id' )
     list_filter = ('calendar__station','calendar', 'start', 'rule', 'end_recurring_period')
     ordering = ('-updated_on',)
     date_hierarchy = 'start'
@@ -133,7 +133,7 @@ class EventAdmin(admin.ModelAdmin):
         return super(EventAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 class OccurrenceAdmin(admin.ModelAdmin):
-    list_display = ('title', 'start_in_timezone', 'event_timezone', 'end_in_timezone', 'cancelled','event', 'updated_on')
+    list_display = ('title', 'start_in_timezone', 'event_timezone', 'end_in_timezone', 'cancelled','eventId','event', 'updated_on', 'id')
     list_filter = ('event__calendar__station', 'event__calendar', 'cancelled', 'start')
     fieldsets =(
         (None, {
@@ -162,6 +162,9 @@ class OccurrenceAdmin(admin.ModelAdmin):
         dt = occurrence.end.astimezone(occurrence.event.calendar.timezone)
         return dt.strftime('%Y-%m-%d %H:%M')
     end_in_timezone.short_description = 'End'
+    def eventId(self, occurrence):
+        return str(occurrence.event_id)
+    eventId.short_description = "EventId"
 
     """ OccurrenceAdmin Overrides"""
     # Override add view to set the timezone before it is proccessed
@@ -178,7 +181,7 @@ class OccurrenceAdmin(admin.ModelAdmin):
             timezone.activate(event.calendar.timezone)
         else:
             obj = self.get_object(request, unquote(object_id))
-            timezone.activate(obj.calendar.timezone)
+            timezone.activate(obj.event.calendar.timezone)
         return super(OccurrenceAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     # Override queries to be restricted to user station affiliations

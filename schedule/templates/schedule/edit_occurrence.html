@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block body %}
-<b>{% trans "Create or change occurrence. All fields are required." %}</b>
+<h2>{% trans "Change Occurrence." %}</h2>
 <br><br>
 <form action="" method="post">
   {% csrf_token %}
@@ -15,6 +15,9 @@
 </form>
 
 <br> <br>
-<a href="{%url 'event' event_id=occurrence.event.pk %}">
-  <button type="button" class="btn btn-default">{% trans "Go To Event" %}</button> </a>
+<a href="{{occurrence.get_absolute_url}}">
+   <button type="button" class="btn btn-default">
+     {% trans "Go To Occurrence" %} <span class="glyphicon glyphicon-arrow-left"></span>
+   </button>
+ </a>
 {% endblock %}

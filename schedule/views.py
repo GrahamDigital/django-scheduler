@@ -177,7 +177,7 @@ class OccurrenceView(OccurrenceMixin, DetailView):
     template_name = 'schedule/occurrence.html'
 
 
-class OccurrencePreview(OccurrenceMixin, ModelFormMixin, ProcessFormView):
+class OccurrencePreview(OccurrenceEditMixin, ModelFormMixin, ProcessFormView):
     template_name = 'schedule/occurrence.html'
 
     def get_context_data(self, **kwargs):
@@ -206,7 +206,7 @@ class CancelOccurrenceView(OccurrenceEditMixin, ModelFormMixin, ProcessFormView)
         event, occurrence = get_occurrence(**kwargs)
         self.success_url = kwargs.get(
             'next',
-            get_next_url(request, event.get_absolute_url()))
+            get_next_url(request, occurrence.get_absolute_url()))
         if "cancel" not in request.POST:
             occurrence.cancel()
         return HttpResponseRedirect(self.success_url)
@@ -331,6 +331,12 @@ class DeleteEventView(EventEditMixin, DeleteView):
         next_url = get_next_url(self.request, next_url)
         return next_url
 
+    def post(self, request, *args, **kwargs):
+        event = Event.objects.get(pk=self.kwargs['event_id'])
+        if "cancel" in request.POST:
+            return HttpResponseRedirect(event.get_absolute_url()) # redirect to event if action cancelled
+        else:
+            return super(DeleteEventView, self).post(request, *args, **kwargs)
 
 def get_occurrence(event_id, occurrence_id=None, year=None, month=None,
                    day=None, hour=None, minute=None, second=None,

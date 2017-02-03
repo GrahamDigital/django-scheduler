@@ -2,7 +2,8 @@
 {% load i18n %}
 
 {% block body %}
-<b>{% trans "Create or change event. All fields are required." %}</b>
+<h2> Event </h2>
+<h3>{% trans "Create or change event." %}</h3>
 <br><br>
 <form action="" method="post">
   {% csrf_token %}

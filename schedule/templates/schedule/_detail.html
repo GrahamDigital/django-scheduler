@@ -9,7 +9,16 @@
         <h4 class="modal-title" id="myModalLabel">{{occurrence.title}}</h4>
       </div>
       <div class="modal-body">
-        <table class="table table-striped">
+        {% if occurrence.event.rule %}
+          {% occurrence_detail occurrence %}
+        {% else %}
+          {% event_detail occurrence.event %}
+        {% endif %}
+        <!-- <table class="table table-striped">
+          <tr>
+            <td class="left"> Event ID </td>
+            <td> {{occurrence.event_id}} </td>
+          </tr>
             <tr>
                 <td class="left">{% trans "Starts" %}</td>
                 <td>{% blocktrans with occurrence.start|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}</td>
@@ -31,20 +40,36 @@
                     {% endif %}
                 {% endif %}
             {% endif %}
+            {% if occurrence.image %}
+            <tr>
+              <td class="left"> Image </td>
+              <td> <a href="{{occurrence.image}}"> link </a> </td>
+            </tr>
+            {% endif %}
             <tr>
               <td class="left"> Livestream </td>
               <td> {{occurrence.livestreamUrl}} </td>
+            </tr>
+            <tr>
+              <td class="left"> Landing Page </td>
+              <td> {{occurrence.livestreamUrl.page_url}} </td>
             </tr>
         </table>
         {% if occurrence.description %}
         <h3>{% trans "Description" %}</h3>
         <p>{{occurrence.description}}</p>
-        {% endif %}
+        {% endif %} -->
       </div>
       <div class="modal-footer">
-       <a href="{%url 'event' event_id=occurrence.event.pk %}">
-          <button type="button" class="btn btn-default">{% trans "Go To Event" %}</button>
+      {% if occurrence.event.rule %}
+       <a href="{{occurrence.get_absolute_url}}">
+          <button type="button" class="btn btn-default">{% trans "Go To Occurrence" %}</button>
         </a>
+      {% else %}
+      <a href="{%url "event" event_id=occurrence.event_id %}">
+         <button type="button" class="btn btn-default">{% trans "Go To Event" %}</button>
+       </a>
+      {% endif %}
        <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
       </div>
     </div>

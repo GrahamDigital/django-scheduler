@@ -1,0 +1,44 @@
+{% load scheduletags i18n %}
+
+<table class="table table-striped">
+  <tr>
+    <td>{% trans "Event Title" %}</td>
+    <td>{{event.title}}</td>
+  </tr>
+  <tr>
+    <td>{% trans "Starts" %}</td>
+    <td>{% blocktrans with event.start|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}</td>
+  </tr>
+  <tr>
+    <td>{% trans "Ends" %}</td>
+    <td>{% blocktrans with event.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</td>
+  </tr>
+  <tr>
+    <td>{% trans "Reoccurs" %}</td>
+    {% if event.rule %}
+      <td>{{ event.rule.name }} {% trans "until" %} {% blocktrans with event.end_recurring_period|date:_("DATETIME_FORMAT") as end_recurring_date %}{{ end_recurring_date }}{% endblocktrans %}</td>
+    {% else %}
+      <td>{% trans "Never. This is a 'one time only' event." %}</td>
+    {% endif %}
+  </tr>
+  <tr>
+    <td> {% trans "Calendar" %} </td>
+    <td> <a href="{{event.calendar.get_absolute_url}}"> {{event.calendar.name}} </a>
+  </tr>
+  <tr>
+    <td class="left"> Image </td>
+    <td> <a href="{{event.image}}"> {{event.image}} </a> </td>
+  </tr>
+  <tr>
+    <td class="left"> Livestream </td>
+    <td> <a href="/schedule/livestreamurl/{{event.livestreamUrl_id}}/change">{{event.livestreamUrl}} </a></td>
+  </tr>
+  <tr>
+    <td class="left"> Landing Page </td>
+    <td> <a href="{{event.livestreamUrl.page_url}}">{{event.livestreamUrl.page_url}}</a> </td>
+  </tr>
+  <tr>
+    <td class="left"> Description </td>
+    <td> {{event.description}} </td>
+  </tr>
+</table>

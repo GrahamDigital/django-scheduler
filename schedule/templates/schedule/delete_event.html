@@ -1,14 +1,19 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load scheduletags i18n %}
 
 {% block body %}
 <h1>{% trans "Delete Event" %}</h1>
+<h4> Deleting Event and ALL Occurrences </h4>
+</br>
 
-<p> Deleting event and ALL event occurrences.</p>
+{% event_detail event %}
 
-{% trans "Are you sure that you really want to delete it?" %}
 
+<div class="text-center">
+{% trans "Are you sure that you really want to delete this event and all its occurrences?" %}
 <form action="" method="post">{% csrf_token %}
     <input type="submit" value="Confirm">
+    <input type="submit" name="cancel" value="Cancel">
 </form>
+</div>
 {% endblock %}

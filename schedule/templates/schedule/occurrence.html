@@ -7,8 +7,8 @@
   <a class="btn btn-primary gradient" href="{% url "day_calendar" occurrence.event.calendar.slug %}{% querystring_for_date occurrence.start 3  %}">
     {% trans "Day" %}
   </a>
-  <a class="btn btn-primary gradient" href="{% url "month_calendar" occurrence.event.calendar.slug %}{% querystring_for_date occurrence.start 2  %}">
-    {% trans "Month" %}
+  <a class="btn btn-primary gradient" href="{% url "week_calendar" occurrence.event.calendar.slug %}{% querystring_for_date occurrence.start 3  %}">
+    {% trans "Week" %}
   </a>
   <a class="btn btn-primary gradient" href="{% url "year_calendar" occurrence.event.calendar.slug %}{% querystring_for_date occurrence.start 1  %}">
     {% trans "Year" %}
@@ -23,40 +23,29 @@
   </a>
   &nbsp;
   {% endif %}
-  <a href="{{occurrence.get_edit_url}}">
-   {% trans "Edit" %} <span class="glyphicon glyphicon-pencil"></span>
-  </a>
-  &nbsp;
-  <a href="{{occurrence.get_cancel_url}}">
-   {% trans "Delete" %} <span class="glyphicon glyphicon-remove"></span>
-  </a>
 </div>
-<h2 align="center">{{occurrence.title}}</h2>
-<table align="center" class="table table-hover">
-<tr>
-<td>{% trans "Starts" %}</td>
-<td>{% blocktrans with occurrence.start|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}</td>
-</tr>
-<tr>
-<td>{% trans "Ends" %}</td>
-<td>{% blocktrans with occurrence.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</td>
-</tr>
-<tr>
-<td>{% trans "Reoccurs" %}</td>
-{% if occurrence.event.rule %}
-<td>{{ occurrence.event.rule.name }} {% trans "until" %} {% blocktrans with occurrence.event.end_recurring_period|date:_("DATETIME_FORMAT") as end_recurring_date %}{{ end_recurring_date }}{% endblocktrans %}</td>
-{% else %}
-<td>{% trans "Never. This is a 'one time only' event." %}</td>
-{% endif %}
-</tr>
-<tr>
-  <td> Livestream</td>
-  <td> {{occurrence.livestreamUrl.name}}</td>
-</tr>
-</table>
-{% if occurrence.description %}
-<h3>{% trans "Description" %}</h3>
-<p>{{occurrence.description}}</p>
-{% endif %}
 
+
+<h3 align="center"> Occurrence </h3>
+
+{% occurrence_detail occurrence %}
+
+
+<a href="{{occurrence.get_edit_url}}">
+ <button type="button" class="btn btn-default">
+   {% trans "Edit Occurrence" %} <span class="glyphicon glyphicon-pencil"></span>
+ </button>
+</a>
+&nbsp;
+<a href="{{occurrence.get_cancel_url}}">
+  <button type="button" class="btn btn-default">
+ {% trans "Delete Occurrence" %} <span class="glyphicon glyphicon-remove"></span>
+ </button>
+</a>
+&nbsp;
+<a href="{%url 'event' event_id=occurrence.event.pk %}">
+   <button type="button" class="btn btn-default">
+     {% trans "Go To Event" %} <span class="glyphicon glyphicon-arrow-up"></span>
+   </button>
+ </a>
 {% endblock %}
